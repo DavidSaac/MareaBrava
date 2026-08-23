@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MareaBrava.Application/MareaBrava.Application.csproj" />
+    <Project Path="src/MareaBrava.Domain/MareaBrava.Domain.csproj" />
+    <Project Path="src/MareaBrava.Infrastructure/MareaBrava.Infrastructure.csproj" />
+    <Project Path="src/MareaBrava.WebUI/MareaBrava.WebUI.csproj" />
+  </Folder>
+</Solution>
