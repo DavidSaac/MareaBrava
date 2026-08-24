@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -18,11 +18,10 @@
             brand: {
               magenta: '#D80064',
               magentaHover: '#B70054',
-              sidebar: '#E2006A',
-              bgLight: '#FBF8F2',
-              cardBg: '#F3EDE2',
-              borderCream: '#E7DFC6',
-              darkText: '#231F20'
+              bgLight: '#FAF6F0',
+              cardBg: '#F3ECE0',
+              borderCream: '#E2D6C3',
+              darkText: '#1E1B18'
             }
           },
           fontFamily: {
@@ -34,340 +33,205 @@
     }
   </script>
   <style>
-    body { background-color: #FBF8F2; }
-    .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 4px; }
+    body { background-color: #FAF6F0; color: #1E1B18; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 6px; }
   </style>
 </head>
-<body class="font-sans text-brand-darkText min-h-screen flex flex-col">
+<body class="font-sans min-h-screen flex flex-col antialiased text-base">
 
-  <!-- ================= TOPBAR MOCKUP ================= -->
-  <header class="bg-brand-bgLight border-b border-brand-borderCream sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center text-xs">
-      <div class="flex items-center space-x-2 text-slate-600 font-medium">
-        <span>🇪🇸 ES ▾</span>
+  <!-- ================= TOPBAR ================= -->
+  <header class="bg-[#FAF6F0] border-b border-brand-borderCream sticky top-0 z-40 shadow-sm">
+    <div class="w-full px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      
+      <div class="flex items-center space-x-3 text-slate-700 w-full md:w-auto justify-between md:justify-start">
+        <span class="font-bold text-sm">🇪🇸 ES</span>
         <span class="text-slate-300">|</span>
-        <span id="header-user-status" class="text-slate-700 font-semibold"><i class="fa-solid fa-user-circle mr-1"></i> Sofía Morales (Cajera)</span>
+        <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-circle-user text-brand-magenta text-lg"></i> Sofía Morales (Cajera)
+        </span>
       </div>
 
-      <!-- Logotipo Central -->
       <div class="text-center">
-        <div class="text-brand-magenta text-xs tracking-widest flex items-center justify-center space-x-1">
+        <div class="text-brand-magenta text-xs font-black tracking-[0.3em] flex items-center justify-center gap-1">
           <span>☼</span><span>MAREA BRAVA</span><span>☼</span>
         </div>
-        <h1 class="font-serif text-2xl md:text-3xl font-bold tracking-tight text-brand-magenta leading-tight">MAREA BRAVA</h1>
-        <p class="text-[9px] tracking-[0.2em] font-semibold text-brand-magenta uppercase">— Bikinis y Pareos —</p>
+        <h1 class="font-serif text-3xl md:text-4xl font-black tracking-tight text-brand-magenta leading-none py-1">MAREA BRAVA</h1>
+        <p class="text-xs tracking-[0.25em] font-bold text-brand-magenta uppercase">— Bikinis y Pareos —</p>
       </div>
 
-      <!-- Accesos Rápidos de Vista -->
-      <div class="flex items-center space-x-2">
-        <button onclick="cambiarVista('tienda')" id="btn-vista-tienda" class="bg-brand-magenta text-white px-3 py-1.5 rounded-full text-xs font-bold transition">Tienda</button>
-        <button onclick="cambiarVista('pos')" id="btn-vista-pos" class="bg-transparent hover:bg-brand-cardBg text-brand-magenta border border-brand-magenta px-3 py-1.5 rounded-full text-xs font-bold transition">Caja POS</button>
-        <button onclick="cambiarVista('admin')" id="btn-vista-admin" class="bg-transparent hover:bg-brand-cardBg text-brand-magenta border border-brand-magenta px-3 py-1.5 rounded-full text-xs font-bold transition">Admin</button>
-        <a href="/swagger" target="_blank" class="text-slate-500 hover:text-brand-magenta p-1.5"><i class="fa-solid fa-code text-sm"></i></a>
-      </div>
-    </div>
-
-    <!-- Navegación Tienda -->
-    <div id="subnav-tienda" class="border-t border-brand-borderCream/60 py-2 bg-[#F7F2E7] text-[11px] font-bold tracking-wider uppercase text-slate-700">
-      <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-        <div class="flex space-x-6">
-          <a href="#" class="hover:text-brand-magenta">Colecciones</a>
-          <a href="#" class="text-brand-magenta">Bikinis</a>
-          <a href="#" class="hover:text-brand-magenta">Pareos</a>
-          <a href="#" class="hover:text-brand-magenta">Conócenos</a>
-          <a href="#" class="hover:text-brand-magenta">Blog</a>
-        </div>
-        <span class="bg-brand-magenta text-white px-3 py-0.5 rounded-full text-[10px] font-bold">Shop New Arrivals</span>
+      <div class="flex items-center gap-3 w-full md:w-auto justify-center">
+        <button onclick="cambiarVista('tienda')" id="btn-vista-tienda" class="bg-brand-magenta text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md transition">
+          <i class="fa-solid fa-store mr-1.5"></i>Tienda
+        </button>
+        <button onclick="cambiarVista('pos')" id="btn-vista-pos" class="bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-6 py-2.5 rounded-full text-sm font-bold transition">
+          <i class="fa-solid fa-cash-register mr-1.5"></i>Caja POS
+        </button>
+        <button onclick="cambiarVista('admin')" id="btn-vista-admin" class="bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-6 py-2.5 rounded-full text-sm font-bold transition">
+          <i class="fa-solid fa-boxes-stacked mr-1.5"></i>Admin
+        </button>
       </div>
     </div>
   </header>
 
-
-  <!-- ================= VISTA 1: TIENDA ONLINE (MOCKUP 1) ================= -->
-  <main id="vista-tienda" class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 md:grid-cols-4 gap-8">
-    <!-- Sidebar Filtros -->
-    <aside class="space-y-6 bg-brand-cardBg/60 p-5 rounded-2xl border border-brand-borderCream h-fit">
+  <!-- ================= VISTA 1: TIENDA ================= -->
+  <main id="vista-tienda" class="w-full px-6 py-8 flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <aside class="space-y-6 bg-brand-cardBg/70 p-6 rounded-3xl border border-brand-borderCream h-fit shadow-sm">
       <div>
+        <label class="block text-xs font-black uppercase text-slate-600 mb-2">Buscador</label>
         <div class="relative">
-          <input type="text" id="filtro-busqueda-tienda" oninput="filtrarTienda()" placeholder="Buscar Bikini (MAREA-)..." class="w-full bg-white border border-brand-borderCream rounded-lg py-2 pl-3 pr-8 text-xs focus:outline-brand-magenta" />
-          <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-2.5 text-slate-400 text-xs"></i>
+          <input type="text" id="filtro-busqueda-tienda" oninput="filtrarTienda()" placeholder="Buscar por modelo o SKU..." class="w-full bg-white border border-brand-borderCream rounded-xl py-3 pl-4 pr-10 text-sm focus:outline-brand-magenta font-medium shadow-inner" />
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400 text-base"></i>
         </div>
       </div>
 
-      <!-- Tallas -->
-      <div>
-        <h4 class="text-xs font-bold uppercase text-slate-700 mb-2">Talla</h4>
-        <div class="flex flex-wrap gap-2 text-xs">
-          <label class="flex items-center space-x-1 cursor-pointer"><input type="checkbox" onchange="filtrarTienda()" class="accent-brand-magenta" value="1"> <span>XS</span></label>
-          <label class="flex items-center space-x-1 cursor-pointer"><input type="checkbox" onchange="filtrarTienda()" class="accent-brand-magenta" value="2"> <span>S</span></label>
-          <label class="flex items-center space-x-1 cursor-pointer"><input type="checkbox" onchange="filtrarTienda()" class="accent-brand-magenta" value="3"> <span>M</span></label>
-          <label class="flex items-center space-x-1 cursor-pointer"><input type="checkbox" onchange="filtrarTienda()" class="accent-brand-magenta" value="4"> <span>L</span></label>
-        </div>
-      </div>
-
-      <!-- Colores -->
-      <div>
-        <h4 class="text-xs font-bold uppercase text-slate-700 mb-2">Color</h4>
-        <div class="flex space-x-2">
-          <span class="w-5 h-5 rounded-full bg-[#E57373] border cursor-pointer"></span>
-          <span class="w-5 h-5 rounded-full bg-[#D80064] border cursor-pointer ring-2 ring-brand-magenta"></span>
-          <span class="w-5 h-5 rounded-full bg-[#F06292] border cursor-pointer"></span>
-          <span class="w-5 h-5 rounded-full bg-[#212121] border cursor-pointer"></span>
-        </div>
-      </div>
-
-      <!-- Descubre Más Mini Cards -->
-      <div class="border-t border-brand-borderCream pt-4">
-        <h4 class="text-xs font-bold uppercase text-slate-700 mb-3">Descubre más</h4>
-        <div class="grid grid-cols-2 gap-2 text-center text-[10px] font-bold text-brand-magenta">
-          <div class="bg-white p-2 rounded-lg border border-brand-borderCream">
-            <img src="https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=200" class="h-20 w-full object-cover rounded mb-1" />
-            [BIKINIS]
+      <div class="border-t border-brand-borderCream pt-5">
+        <h4 class="text-xs font-black uppercase text-slate-600 mb-3">Categorías</h4>
+        <div class="grid grid-cols-2 gap-3 text-center text-xs font-black text-brand-magenta">
+          <div class="bg-white p-3 rounded-2xl border border-brand-borderCream shadow-sm">
+            <img src="https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400" class="h-28 w-full object-cover rounded-xl mb-2" />
+            <span>BIKINIS</span>
           </div>
-          <div class="bg-white p-2 rounded-lg border border-brand-borderCream">
-            <img src="https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=200" class="h-20 w-full object-cover rounded mb-1" />
-            [PAREOS]
+          <div class="bg-white p-3 rounded-2xl border border-brand-borderCream shadow-sm">
+            <img src="https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=400" class="h-28 w-full object-cover rounded-xl mb-2" />
+            <span>PAREOS</span>
           </div>
         </div>
       </div>
     </aside>
 
-    <!-- Grid de Productos -->
-    <section class="md:col-span-3">
-      <div id="grid-tienda" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Renders con JS -->
-      </div>
+    <section class="lg:col-span-3">
+      <div id="grid-tienda" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
     </section>
   </main>
 
-
-  <!-- ================= VISTA 2: ADMIN INVENTARIO (MOCKUP 2) ================= -->
-  <div id="vista-admin" class="hidden flex-1 flex flex-col md:flex-row w-full">
-    <!-- Contenido Tabla Admin -->
-    <div class="flex-1 p-6 max-w-6xl mx-auto w-full space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900 font-sans">Gestión de Inventario</h2>
-          <p class="text-xs text-slate-500">Control de stock, códigos SKU y estados de catálogo</p>
-        </div>
-        <button onclick="abrirModalPrenda()" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2 rounded-lg text-xs font-bold shadow flex items-center space-x-2">
-          <i class="fa-solid fa-plus"></i>
-          <span>Subir Nuevo Modelo</span>
-        </button>
+  <!-- ================= VISTA 2: ADMIN ================= -->
+  <main id="vista-admin" class="hidden w-full px-6 py-8 flex-1 space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-brand-borderCream shadow-sm">
+      <div>
+        <h2 class="text-3xl font-serif font-black text-slate-900">Gestión de Inventario</h2>
+        <p class="text-sm text-slate-500 font-medium">Control de existencias, precios y catálogo de piezas</p>
       </div>
+      <button onclick="abrirModalPrenda()" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-6 py-3.5 rounded-2xl text-sm font-extrabold shadow-md flex items-center gap-2 transition active:scale-95">
+        <i class="fa-solid fa-plus text-base"></i>
+        <span>Subir Nuevo Modelo</span>
+      </button>
+    </div>
 
-      <div class="bg-brand-cardBg/40 rounded-xl border border-brand-borderCream overflow-x-auto shadow-sm">
-        <table class="w-full text-left text-xs border-collapse">
+    <div class="bg-white rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse min-w-[800px]">
           <thead>
-            <tr class="bg-[#ECE4D4] text-slate-700 font-bold border-b border-brand-borderCream">
-              <th class="p-3 text-center">Foto</th>
-              <th class="p-3">Prenda</th>
-              <th class="p-3 text-center">Talla</th>
-              <th class="p-3">Color</th>
-              <th class="p-3">SKU</th>
-              <th class="p-3 text-right">Costo</th>
-              <th class="p-3 text-right">Precio</th>
-              <th class="p-3 text-center">Stock Actual</th>
-              <th class="p-3 text-center">Estado</th>
-              <th class="p-3 text-center">Acciones</th>
+            <tr class="bg-[#F4ECE1] text-slate-800 font-black border-b border-brand-borderCream text-xs uppercase tracking-wider">
+              <th class="p-4 text-center">Foto</th>
+              <th class="p-4">Prenda</th>
+              <th class="p-4 text-center">Talla</th>
+              <th class="p-4">Color</th>
+              <th class="p-4">SKU</th>
+              <th class="p-4 text-right">Costo</th>
+              <th class="p-4 text-right">P. Venta</th>
+              <th class="p-4 text-center">Stock</th>
+              <th class="p-4 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody id="tabla-admin-prendas" class="divide-y divide-brand-borderCream/60 bg-white">
-            <!-- Renders con JS -->
-          </tbody>
+          <tbody id="tabla-admin-prendas" class="divide-y divide-brand-borderCream/60"></tbody>
         </table>
       </div>
     </div>
+  </main>
 
-    <!-- Menú Lateral Magenta Admin (Mockup 2) -->
-    <aside class="w-full md:w-64 bg-brand-sidebar text-white p-5 flex flex-col justify-between shadow-xl">
-      <div class="space-y-6">
-        <div class="text-center border-b border-white/20 pb-4">
-          <h3 class="font-serif text-2xl font-bold tracking-wider">MAREA BRAVA</h3>
-          <p class="text-[9px] tracking-widest font-semibold uppercase opacity-90">— Bikinis y Pareos —</p>
+  <!-- ================= VISTA 3: POS ================= -->
+  <main id="vista-pos" class="hidden w-full px-6 py-8 flex-1 space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+        <div class="relative">
+          <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Buscar prenda o escanear código..." class="w-full bg-white border-2 border-brand-borderCream rounded-2xl p-4 pl-5 pr-12 text-base font-semibold focus:outline-brand-magenta shadow-sm" />
+          <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-slate-400 text-lg"></i>
         </div>
-
-        <nav class="space-y-2 text-xs font-semibold">
-          <button class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white/10 flex items-center space-x-2">
-            <i class="fa-solid fa-house"></i>
-            <span>[Inicio / Dashboard]</span>
-          </button>
-          <button onclick="cambiarVista('pos')" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white/10 flex items-center space-x-2">
-            <i class="fa-solid fa-cash-register"></i>
-            <span>[Caja / POS]</span>
-          </button>
-          <div class="bg-black/20 rounded-lg p-2 space-y-1">
-            <div class="py-1 px-2 text-white font-bold flex items-center space-x-2">
-              <i class="fa-solid fa-boxes-stacked"></i>
-              <span>[Gestión de Inventario] (Active)</span>
-            </div>
-            <div class="pl-6 space-y-1 text-[11px] font-normal text-pink-100">
-              <button onclick="abrirModalPrenda()" class="block hover:underline">↳ Subir Nuevo Modelo +</button>
-              <button onclick="alert('Exportando listado de inventario...')" class="block hover:underline">↳ Exportar por Talla / Lote <i class="fa-solid fa-download text-[9px]"></i></button>
-            </div>
-          </div>
-          <button onclick="cambiarVista('tienda')" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white/10 flex items-center space-x-2">
-            <i class="fa-solid fa-store"></i>
-            <span>[Ver Catálogo Público]</span>
-          </button>
-        </nav>
+        <div id="grid-pos-items" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[640px] overflow-y-auto custom-scroll pr-2"></div>
       </div>
 
-      <div class="text-[11px] opacity-75 text-center border-t border-white/20 pt-4">
-        Admin Marea Brava v1.0
-      </div>
-    </aside>
-  </div>
+      <div class="lg:col-span-5 xl:col-span-4">
+        <div class="bg-white rounded-3xl border-2 border-brand-borderCream p-6 shadow-xl space-y-6 sticky top-24">
+          <h3 class="font-serif font-bold text-2xl text-slate-900 border-b border-brand-borderCream pb-3">Ticket de Cobro</h3>
+          <div id="pos-ticket-lineas" class="py-3 space-y-3 min-h-[160px] max-h-[260px] overflow-y-auto custom-scroll text-sm"></div>
 
-
-  <!-- ================= VISTA 3: PUNTO DE VENTA POS (MOCKUP 3) ================= -->
-  <div id="vista-pos" class="hidden flex-1 flex flex-col md:flex-row w-full">
-    <!-- Área Central POS -->
-    <div class="flex-1 p-6 max-w-5xl mx-auto w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-brand-borderCream pb-3">
-        <div>
-          <h2 class="text-2xl font-bold font-sans text-slate-900">Punto de Venta</h2>
-          <p class="text-xs text-slate-500 font-medium">Turno Activo: Sofía Morales | <span id="fecha-pos"></span></p>
-        </div>
-        <div class="flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
-          <i class="fa-solid fa-barcode"></i>
-          <span>Pistola Lectora Conectada</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Catálogo rápido (2 Cols) -->
-        <div class="lg:col-span-2 space-y-4 bg-brand-cardBg/50 p-4 rounded-2xl border border-brand-borderCream">
-          <div class="flex justify-between items-center">
-            <h3 class="font-bold text-sm text-slate-800">Catálogo Rápido y Búsqueda</h3>
+          <div class="border-t-2 border-dashed border-brand-borderCream pt-4 space-y-2 font-bold text-slate-700 text-sm">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="pos-subtotal">$0.00 USD</span>
+            </div>
+            <div class="flex justify-between text-2xl font-black text-slate-900 pt-2 border-t border-slate-200">
+              <span>TOTAL:</span>
+              <span id="pos-total" class="text-brand-magenta font-black">$0.00 USD</span>
+            </div>
           </div>
 
-          <div class="relative">
-            <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Escanear Código o Buscar Modelo..." class="w-full bg-white border border-brand-borderCream rounded-lg p-2.5 pl-4 pr-10 text-xs focus:outline-brand-magenta" />
-            <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
-          </div>
-
-          <div id="grid-pos-items" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto custom-scroll pr-1">
-            <!-- Cards de prendas para venta rápida -->
-          </div>
-        </div>
-
-        <!-- Ticket de Cobro Actual (Mockup 3) -->
-        <div class="bg-[#F6EFE3] rounded-2xl border border-brand-borderCream p-5 flex flex-col justify-between shadow-sm">
-          <div>
-            <h3 class="font-serif font-bold text-lg text-slate-800 border-b border-brand-borderCream pb-2">Ticket de Cobro Actual</h3>
-            
-            <div id="pos-ticket-lineas" class="py-3 space-y-2 min-h-[140px] max-h-[220px] overflow-y-auto custom-scroll text-xs">
-              <p class="text-slate-400 text-center py-8">Ticket vacío</p>
+          <div class="space-y-3">
+            <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+              <button onclick="seleccionarMetodo(1)" id="btn-met-1" class="py-2.5 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl shadow-sm">Efectivo</button>
+              <button onclick="seleccionarMetodo(2)" id="btn-met-2" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Tarjeta</button>
+              <button onclick="seleccionarMetodo(3)" id="btn-met-3" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Transf.</button>
             </div>
 
-            <!-- Desglose Montos -->
-            <div class="border-t border-brand-borderCream pt-3 space-y-1 text-xs font-semibold text-slate-700">
-              <div class="flex justify-between">
-                <span>Subtotal:</span>
-                <span id="pos-subtotal">$0.00 USD</span>
+            <div id="caja-efectivo" class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 space-y-2 text-sm">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-700">Monto Recibido:</span>
+                <input type="number" id="pos-efectivo-recibido" oninput="calcularCambio()" placeholder="$0.00" class="w-32 bg-white border border-slate-300 rounded-lg p-2 text-right font-black text-slate-900 text-base shadow-inner focus:outline-brand-magenta" />
               </div>
-              <div class="flex justify-between">
-                <span>Impuestos:</span>
-                <span>$0.00 USD</span>
-              </div>
-              <div class="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-300">
-                <span>TOTAL A COBRAR:</span>
-                <span id="pos-total" class="text-brand-magenta font-black">$0.00 USD</span>
-              </div>
-            </div>
-
-            <!-- Formas de pago -->
-            <div class="mt-4 space-y-2">
-              <div class="grid grid-cols-3 gap-1 text-[11px] font-bold">
-                <button onclick="seleccionarMetodo(1)" id="btn-met-1" class="py-1.5 border border-brand-magenta bg-brand-magenta text-white rounded">[Efectivo]</button>
-                <button onclick="seleccionarMetodo(2)" id="btn-met-2" class="py-1.5 border border-slate-300 bg-white text-slate-700 rounded hover:bg-slate-50">[Tarjeta]</button>
-                <button onclick="seleccionarMetodo(3)" id="btn-met-3" class="py-1.5 border border-slate-300 bg-white text-slate-700 rounded hover:bg-slate-50">[Transferencia]</button>
-              </div>
-
-              <div id="caja-efectivo" class="space-y-1 text-xs pt-2">
-                <div class="flex justify-between items-center">
-                  <label class="font-bold text-slate-700">Efectivo Recibido:</label>
-                  <input type="number" id="pos-efectivo-recibido" oninput="calcularCambio()" placeholder="$0.00" class="w-28 bg-white border border-slate-300 rounded p-1 text-right font-bold" />
-                </div>
-                <div class="flex justify-between items-center">
-                  <label class="font-bold text-slate-700">Cambio:</label>
-                  <span id="pos-cambio" class="font-mono font-bold text-emerald-700">$0.00</span>
-                </div>
+              <div class="flex justify-between items-center pt-2 border-t border-amber-200/60 font-black">
+                <span class="text-slate-700">Cambio:</span>
+                <span id="pos-cambio" class="font-mono text-xl text-emerald-700">$0.00</span>
               </div>
             </div>
           </div>
 
-          <div class="pt-4 space-y-2">
-            <button onclick="cancelarTicket()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg text-xs transition">
-              <i class="fa-solid fa-trash mr-1"></i> CANCELAR VENTA
-            </button>
-            <button onclick="cobrarTicket()" id="btn-cobrar-pos" disabled class="w-full bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-300 text-white font-bold py-2.5 rounded-lg text-xs shadow-md transition">
-              <i class="fa-solid fa-credit-card mr-1"></i> COBRAR E IMPRIMIR TICKET
-            </button>
-          </div>
+          <button onclick="cobrarTicket()" id="btn-cobrar-pos" disabled class="w-full bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-300 text-white font-black py-4 rounded-2xl text-base shadow-lg transition active:scale-95">
+            COBRAR E IMPRIMIR
+          </button>
         </div>
       </div>
     </div>
+  </main>
 
-    <!-- Menú Lateral POS Magenta (Mockup 3) -->
-    <aside class="w-full md:w-64 bg-brand-sidebar text-white p-5 flex flex-col justify-between shadow-xl">
-      <div class="space-y-6">
-        <div class="text-center border-b border-white/20 pb-4">
-          <h3 class="font-serif text-2xl font-bold tracking-wider">MAREA BRAVA</h3>
-          <p class="text-[9px] tracking-widest font-semibold uppercase opacity-90">— Bikinis y Pareos —</p>
-        </div>
-
-        <nav class="space-y-2 text-xs font-semibold">
-          <div class="bg-black/20 rounded-lg p-2.5 text-white font-bold flex items-center space-x-2">
-            <i class="fa-solid fa-cash-register"></i>
-            <span>[POS / Nueva Venta] (Active)</span>
-          </div>
-          <button onclick="cambiarVista('admin')" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white/10 flex items-center space-x-2">
-            <i class="fa-solid fa-boxes-stacked"></i>
-            <span>[Consulta de Stock]</span>
-          </button>
-          <button onclick="alert('Corte de caja z: $0.00')" class="w-full text-left py-2.5 px-3 rounded-lg hover:bg-white/10 flex items-center space-x-2">
-            <i class="fa-solid fa-folder-closed"></i>
-            <span>[Corte de Caja / Turno]</span>
-          </button>
-        </nav>
-      </div>
-
-      <div class="text-[11px] opacity-75 text-center border-t border-white/20 pt-4">
-        Caja 01 • Conexión Online
-      </div>
-    </aside>
-  </div>
-
-
-  <!-- ================= MODAL SUBIR / EDITAR PRENDA ================= -->
-  <div id="modal-prenda" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-brand-borderCream">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="font-serif font-bold text-lg text-brand-magenta">Subir Nuevo Modelo</h3>
-        <button onclick="cerrarModalPrenda()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-      <form id="form-prenda" onsubmit="guardarNuevaPrenda(event)" class="space-y-3 text-xs">
+  <!-- ================= MODAL SUBIR MODELO CON FOTO ================= -->
+  <div id="modal-prenda" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-brand-borderCream max-h-[92vh] overflow-y-auto custom-scroll">
+      <div class="flex justify-between items-center border-b pb-4">
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Nombre del Modelo</label>
-          <input type="text" id="m-nombre" required placeholder="Ej: Bikini Triángulo Coral" class="w-full border rounded-lg p-2" />
+          <h3 class="font-serif font-black text-2xl text-brand-magenta">Subir Nuevo Modelo</h3>
+          <p class="text-xs text-slate-500 font-medium">Adjunta los datos y la fotografía del traje de baño</p>
         </div>
+        <button onclick="cerrarModalPrenda()" class="text-slate-400 hover:text-slate-700 p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
+      </div>
+
+      <form id="form-prenda" onsubmit="guardarNuevaPrenda(event)" class="space-y-4 text-sm font-semibold text-slate-700">
+        <div>
+          <label class="block mb-1.5 font-bold">Nombre del Modelo</label>
+          <input type="text" id="m-nombre" required placeholder="Ej: Bikini Triángulo Sunset" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:outline-brand-magenta" />
+        </div>
+        
+        <!-- Campo para foto -->
+        <div class="bg-pink-50/50 p-4 rounded-2xl border-2 border-dashed border-brand-magenta/40">
+          <label class="block mb-1.5 font-black text-brand-magenta"><i class="fa-solid fa-camera mr-1.5"></i>Foto de la Prenda (JPG, PNG o WEBP)</label>
+          <input type="file" id="m-imagen" accept="image/png, image/jpeg, image/webp" class="w-full text-xs font-semibold file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-magenta file:text-white hover:file:bg-brand-magentaHover cursor-pointer" />
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Código SKU</label>
-            <input type="text" id="m-sku" required placeholder="800201" class="w-full border rounded-lg p-2 uppercase font-mono" />
+            <label class="block mb-1 font-bold">Código SKU</label>
+            <input type="text" id="m-sku" required placeholder="MB-800201" class="w-full border-2 border-slate-200 rounded-xl p-2.5 uppercase font-mono" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Color</label>
-            <input type="text" id="m-color" required placeholder="Coral" class="w-full border rounded-lg p-2" />
+            <label class="block mb-1 font-bold">Color</label>
+            <input type="text" id="m-color" required placeholder="Coral" class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
           </div>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Tipo de Pieza</label>
-            <select id="m-tipo" class="w-full border rounded-lg p-2">
+            <label class="block mb-1 font-bold">Tipo de Pieza</label>
+            <select id="m-tipo" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
               <option value="2">Dos Piezas (Bikini)</option>
               <option value="1">Una Pieza (Entero)</option>
               <option value="3">Top Individual</option>
@@ -376,8 +240,8 @@
             </select>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Talla</label>
-            <select id="m-talla" class="w-full border rounded-lg p-2">
+            <label class="block mb-1 font-bold">Talla</label>
+            <select id="m-talla" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
               <option value="1">XS</option>
               <option value="2">S</option>
               <option value="3" selected>M</option>
@@ -387,30 +251,32 @@
             </select>
           </div>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Precio Costo ($)</label>
-            <input type="number" id="m-costo" step="0.01" required value="8.00" class="w-full border rounded-lg p-2" />
+            <label class="block mb-1 font-bold">Precio Costo ($ USD)</label>
+            <input type="number" id="m-costo" step="0.01" required value="8.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Precio Venta ($)</label>
-            <input type="number" id="m-precio" step="0.01" required value="15.00" class="w-full border rounded-lg p-2" />
+            <label class="block mb-1 font-bold">Precio Venta ($ USD)</label>
+            <input type="number" id="m-precio" step="0.01" required value="22.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-black text-brand-magenta" />
           </div>
         </div>
+
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Stock Inicial</label>
-          <input type="number" id="m-stock" required min="0" value="10" class="w-full border rounded-lg p-2" />
+          <label class="block mb-1 font-bold">Stock Inicial</label>
+          <input type="number" id="m-stock" required min="0" value="12" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-bold" />
         </div>
-        <div class="pt-3 flex justify-end space-x-2">
-          <button type="button" onclick="cerrarModalPrenda()" class="px-4 py-2 text-slate-500 rounded-lg">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-brand-magenta hover:bg-brand-magentaHover text-white font-bold rounded-lg shadow">Guardar Modelo</button>
+
+        <div class="pt-4 flex justify-end gap-3 border-t">
+          <button type="button" onclick="cerrarModalPrenda()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl">Cancelar</button>
+          <button type="submit" class="px-6 py-2.5 bg-brand-magenta hover:bg-brand-magentaHover text-white font-black rounded-xl shadow-md">Guardar y Publicar</button>
         </div>
       </form>
     </div>
   </div>
 
-
-  <!-- ================= LÓGICA JAVASCRIPT ================= -->
+  <!-- ================= JAVASCRIPT ================= -->
   <script>
     let catalogo = [];
     let ticketPOS = [];
@@ -418,9 +284,9 @@
 
     const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'OS' };
     const fotosDefault = [
-      "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400",
-      "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=400",
-      "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=400"
+      "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
+      "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
+      "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=600"
     ];
 
     async function cargarDatos() {
@@ -435,114 +301,108 @@
       }
     }
 
-    // VISTAS
     function cambiarVista(vista) {
       document.getElementById('vista-tienda').classList.toggle('hidden', vista !== 'tienda');
-      document.getElementById('subnav-tienda').classList.toggle('hidden', vista !== 'tienda');
       document.getElementById('vista-admin').classList.toggle('hidden', vista !== 'admin');
       document.getElementById('vista-pos').classList.toggle('hidden', vista !== 'pos');
 
       ['tienda', 'pos', 'admin'].forEach(v => {
         const btn = document.getElementById(`btn-vista-${v}`);
         if (v === vista) {
-          btn.className = "bg-brand-magenta text-white px-3 py-1.5 rounded-full text-xs font-bold transition";
+          btn.className = "bg-brand-magenta text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md transition";
         } else {
-          btn.className = "bg-transparent hover:bg-brand-cardBg text-brand-magenta border border-brand-magenta px-3 py-1.5 rounded-full text-xs font-bold transition";
+          btn.className = "bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-6 py-2.5 rounded-full text-sm font-bold transition";
         }
       });
     }
 
-    // RENDER TIENDA (MOCKUP 1)
     function renderTienda(items) {
       const cont = document.getElementById('grid-tienda');
       if (!items.length) {
-        cont.innerHTML = '<p class="col-span-3 text-center text-slate-400 py-12">No hay bikinis disponibles</p>';
+        cont.innerHTML = '<p class="col-span-3 text-center text-slate-400 py-16 text-base font-semibold">No hay modelos activos.</p>';
         return;
       }
       cont.innerHTML = items.map((p, idx) => `
-        <div class="bg-white rounded-2xl p-4 border border-brand-borderCream shadow-sm flex flex-col justify-between text-center group">
-          <div class="overflow-hidden rounded-xl bg-slate-100 mb-3">
-            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="h-64 w-full object-cover group-hover:scale-105 transition duration-300" />
-          </div>
+        <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
           <div>
-            <h3 class="font-serif font-bold text-sm text-slate-800 uppercase tracking-wide">${p.nombre}</h3>
-            <p class="text-[10px] font-mono text-slate-400 mb-2">SKU/${p.sku} / Ref: #${p.id}00${idx}</p>
-            <div class="flex justify-center space-x-1.5 mb-2">
-              <span class="border border-slate-300 px-2 py-0.5 rounded text-[10px] font-bold text-slate-600">${tallasMap[p.talla] || 'M'}</span>
+            <div class="overflow-hidden rounded-2xl bg-slate-100 mb-4 h-72 sm:h-80 flex items-center justify-center relative">
+              <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="h-full w-full object-cover group-hover:scale-105 transition duration-500" />
+              <span class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black text-brand-magenta shadow-sm">
+                Talla ${tallasMap[p.talla] || 'M'}
+              </span>
             </div>
-            <p class="font-bold text-base text-brand-darkText mb-3">$${p.precioVenta.toFixed(2)}</p>
+            <h3 class="font-serif font-black text-lg text-slate-900 uppercase tracking-wide leading-tight">${p.nombre}</h3>
+            <p class="text-xs font-mono text-slate-400 mt-1 mb-2">SKU: ${p.sku} • Color: ${p.color}</p>
           </div>
-          <button onclick="agregarAlPOSDirecto(${p.id})" class="w-full bg-brand-magenta hover:bg-brand-magentaHover text-white py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition flex items-center justify-center space-x-1">
-            <i class="fa-solid fa-bag-shopping text-xs"></i>
-            <span>Añadir al Carrito</span>
-          </button>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Precio</span>
+              <span class="font-black text-2xl text-slate-900">$${p.precioVenta.toFixed(2)}</span>
+            </div>
+            <button onclick="agregarAlPOSDirecto(${p.id})" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition shadow-md flex items-center gap-1.5 active:scale-95">
+              <i class="fa-solid fa-cart-shopping"></i> Comprar
+            </button>
+          </div>
         </div>
       `).join('');
     }
 
-    // RENDER ADMIN (MOCKUP 2)
     function renderAdmin(items) {
       const tbody = document.getElementById('tabla-admin-prendas');
       if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400">Sin prendas en el inventario</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400 font-semibold">No hay modelos registrados.</td></tr>';
         return;
       }
 
       tbody.innerHTML = items.map((p, idx) => `
-        <tr class="hover:bg-amber-50/40 transition border-b border-brand-borderCream/40">
-          <td class="p-2 text-center">
-            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-10 h-10 object-cover rounded-lg mx-auto border" />
+        <tr class="hover:bg-amber-50/40 transition">
+          <td class="p-4 text-center">
+            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-14 h-16 object-cover rounded-xl mx-auto border shadow-sm" />
           </td>
-          <td class="p-3 font-semibold text-slate-800">${p.nombre}</td>
-          <td class="p-3 text-center font-bold text-slate-600">${tallasMap[p.talla] || 'M'}</td>
-          <td class="p-3">${p.color}</td>
-          <td class="p-3 font-mono font-bold text-slate-700">${p.sku}</td>
-          <td class="p-3 text-right text-slate-500">$${p.precioCosto.toFixed(2)}</td>
-          <td class="p-3 text-right font-bold text-slate-800">$${p.precioVenta.toFixed(2)}</td>
-          <td class="p-3 text-center">
-            <span class="inline-block px-2.5 py-0.5 rounded font-bold text-xs ${p.stockActual > 5 ? 'bg-emerald-100 text-emerald-800' : (p.stockActual > 0 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')}">
-              ${p.stockActual}
+          <td class="p-4 font-bold text-slate-900 text-base">${p.nombre}</td>
+          <td class="p-4 text-center"><span class="px-2.5 py-1 bg-slate-100 rounded-md font-extrabold text-xs text-slate-700">${tallasMap[p.talla] || 'M'}</span></td>
+          <td class="p-4 font-medium text-slate-700">${p.color}</td>
+          <td class="p-4 font-mono font-bold text-slate-800">${p.sku}</td>
+          <td class="p-4 text-right text-slate-500 font-semibold">$${p.precioCosto.toFixed(2)}</td>
+          <td class="p-4 text-right font-black text-slate-900 text-base">$${p.precioVenta.toFixed(2)}</td>
+          <td class="p-4 text-center">
+            <span class="inline-block px-3 py-1 rounded-full font-black text-xs ${p.stockActual > 5 ? 'bg-emerald-100 text-emerald-800' : (p.stockActual > 0 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')}">
+              ${p.stockActual} pzas
             </span>
           </td>
-          <td class="p-3 text-center font-semibold text-[11px] ${p.stockActual > 0 ? 'text-slate-600' : 'text-red-500'}">
-            ${p.stockActual > 0 ? 'En Catálogo' : 'Agotado'}
-          </td>
-          <td class="p-2 text-center">
-            <div class="flex items-center justify-center space-x-1">
-              <button onclick="alert('Editar prenda #${p.id}')" title="Editar" class="bg-brand-magenta text-white p-1.5 rounded hover:bg-brand-magentaHover text-[10px]"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="alert('Duplicar #${p.id}')" title="Duplicar" class="bg-brand-magenta text-white p-1.5 rounded hover:bg-brand-magentaHover text-[10px]"><i class="fa-solid fa-copy"></i></button>
-              <button onclick="eliminarPrenda(${p.id})" title="Baja Lógica" class="bg-brand-magenta text-white p-1.5 rounded hover:bg-brand-magentaHover text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-            </div>
+          <td class="p-4 text-center">
+            <button onclick="eliminarPrenda(${p.id})" title="Dar de baja" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 p-2.5 rounded-xl transition">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
           </td>
         </tr>
       `).join('');
     }
 
-    // RENDER POS (MOCKUP 3)
     function renderPOS(items) {
       const grid = document.getElementById('grid-pos-items');
       grid.innerHTML = items.map((p, idx) => `
-        <div class="bg-white p-3 rounded-xl border border-brand-borderCream flex flex-col justify-between space-y-2">
-          <div class="flex space-x-3 items-center">
-            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-14 h-16 object-cover rounded-lg border" />
-            <div class="text-xs">
-              <h4 class="font-bold text-slate-800 leading-tight">${p.nombre}</h4>
-              <p class="text-[10px] text-slate-500">Talla: <strong>${tallasMap[p.talla]}</strong> | ${p.color}</p>
-              <p class="font-black text-brand-magenta mt-1">P. Venta: $${p.precioVenta.toFixed(2)} USD</p>
-              <p class="text-[10px] ${p.stockActual > 3 ? 'text-emerald-600' : 'text-amber-600'} font-semibold">
-                ● Stock Disponible: ${p.stockActual} piezas
+        <div class="bg-white p-4 rounded-2xl border border-brand-borderCream shadow-sm flex flex-col justify-between space-y-3">
+          <div class="flex gap-4 items-center">
+            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-20 h-24 object-cover rounded-xl border shadow-sm shrink-0" />
+            <div class="min-w-0">
+              <h4 class="font-bold text-slate-900 text-base truncate leading-tight">${p.nombre}</h4>
+              <p class="text-xs text-slate-500 mt-0.5">Talla: <strong>${tallasMap[p.talla]}</strong> | ${p.color}</p>
+              <p class="font-black text-lg text-brand-magenta mt-1">$${p.precioVenta.toFixed(2)} USD</p>
+              <p class="text-xs ${p.stockActual > 3 ? 'text-emerald-700' : 'text-amber-700'} font-bold">
+                ● Stock: ${p.stockActual} disponibles
               </p>
             </div>
           </div>
 
-          <div class="flex items-center space-x-2 pt-1 border-t border-slate-100">
-            <div class="flex items-center border rounded bg-slate-50">
-              <button onclick="modificarCantidadInput(${p.id}, -1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-200 font-bold">-</button>
-              <span id="cant-pos-${p.id}" class="px-2 text-xs font-bold">1</span>
-              <button onclick="modificarCantidadInput(${p.id}, 1)" class="px-2 py-0.5 text-slate-600 hover:bg-slate-200 font-bold">+</button>
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center border-2 border-slate-200 rounded-xl bg-slate-50">
+              <button onclick="modificarCantidadInput(${p.id}, -1)" class="px-3 py-1.5 text-slate-700 hover:bg-slate-200 font-black text-base">-</button>
+              <span id="cant-pos-${p.id}" class="px-3 text-sm font-black text-slate-900">1</span>
+              <button onclick="modificarCantidadInput(${p.id}, 1)" class="px-3 py-1.5 text-slate-700 hover:bg-slate-200 font-black text-base">+</button>
             </div>
-            <button onclick="agregarAlTicketConCantidad(${p.id})" ${p.stockActual === 0 ? 'disabled' : ''} class="flex-1 bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-300 text-white py-1 rounded text-[11px] font-bold uppercase transition">
-              + AGREGAR A TICKET
+            <button onclick="agregarAlTicketConCantidad(${p.id})" ${p.stockActual === 0 ? 'disabled' : ''} class="flex-1 bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm active:scale-95">
+              + Agregar
             </button>
           </div>
         </div>
@@ -566,14 +426,14 @@
         if (item.cantidad + cant <= prenda.stockActual) {
           item.cantidad += cant;
         } else {
-          alert(`Stock insuficiente. Solo hay ${prenda.stockActual} piezas.`);
+          alert(`Stock insuficiente. Solo hay ${prenda.stockActual} disponibles.`);
           return;
         }
       } else {
         if (cant <= prenda.stockActual) {
           ticketPOS.push({ prendaId: prenda.id, nombre: prenda.nombre, talla: tallasMap[prenda.talla], precio: prenda.precioVenta, cantidad: cant });
         } else {
-          alert(`Stock insuficiente.`);
+          alert('Stock insuficiente.');
           return;
         }
       }
@@ -601,7 +461,7 @@
       const btnCobrar = document.getElementById('btn-cobrar-pos');
 
       if (!ticketPOS.length) {
-        cont.innerHTML = '<p class="text-slate-400 text-center py-8">Ticket vacío</p>';
+        cont.innerHTML = '<p class="text-slate-400 text-center py-10 text-sm">Ticket vacío.</p>';
         subtotalEl.innerText = '$0.00 USD';
         totalEl.innerText = '$0.00 USD';
         btnCobrar.disabled = true;
@@ -610,16 +470,16 @@
       }
 
       let total = 0;
-      cont.innerHTML = ticketPOS.map(i => {
+      cont.innerHTML = ticketPOS.map((i, idx) => {
         const sub = i.precio * i.cantidad;
         total += sub;
         return `
-          <div class="border-b border-brand-borderCream/60 pb-1.5 flex justify-between items-start">
+          <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
-              <p class="font-bold text-slate-800">${i.cantidad}x ${i.nombre} (${i.talla})</p>
-              <p class="text-[10px] text-slate-500">- $${i.precio.toFixed(2)} USD c/u</p>
+              <p class="font-bold text-slate-900 text-sm">${i.cantidad}x ${i.nombre} (${i.talla})</p>
+              <p class="text-xs text-slate-400">$${i.precio.toFixed(2)} USD c/u</p>
             </div>
-            <span class="font-bold text-slate-800">- $${sub.toFixed(2)} USD</span>
+            <span class="font-black text-slate-900 text-sm">$${sub.toFixed(2)}</span>
           </div>
         `;
       }).join('');
@@ -635,9 +495,9 @@
       [1, 2, 3].forEach(m => {
         const btn = document.getElementById(`btn-met-${m}`);
         if (m === met) {
-          btn.className = 'py-1.5 border border-brand-magenta bg-brand-magenta text-white rounded font-bold';
+          btn.className = 'py-2.5 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl shadow-sm font-bold';
         } else {
-          btn.className = 'py-1.5 border border-slate-300 bg-white text-slate-700 rounded hover:bg-slate-50 font-bold';
+          btn.className = 'py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl font-bold';
         }
       });
       document.getElementById('caja-efectivo').style.display = met === 1 ? 'block' : 'none';
@@ -647,7 +507,7 @@
       const total = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
       const recibido = parseFloat(document.getElementById('pos-efectivo-recibido').value) || 0;
       const cambio = recibido - total;
-      document.getElementById('pos-cambio').innerText = `$${(cambio >= 0 ? cambio : 0).toFixed(2)}`;
+      document.getElementById('pos-cambio').innerText = `$${(cambio >= 0 ? cambio : 0).toFixed(2)} USD`;
     }
 
     function cancelarTicket() {
@@ -674,28 +534,26 @@
 
         if (res.ok) {
           const venta = await res.json();
-          alert(`✅ VENTA EXITOSA\nFolio Ticket: ${venta.numeroTicket}\nTotal Cobrado: $${venta.total.toFixed(2)} USD`);
+          alert(`✅ VENTA EXITOSA\nFolio: ${venta.numeroTicket}\nTotal: $${venta.total.toFixed(2)} USD`);
           cancelarTicket();
           cargarDatos();
         } else {
           const err = await res.json();
-          alert('Error: ' + (err.error || 'No se pudo procesar la venta'));
+          alert('Error: ' + (err.error || 'No se pudo procesar'));
         }
       } catch (e) {
-        alert('Error de conexión al procesar el ticket.');
+        alert('Error de conexión');
       }
     }
 
     function filtrarTienda() {
       const q = document.getElementById('filtro-busqueda-tienda').value.toLowerCase();
-      const filtradas = catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-      renderTienda(filtradas);
+      renderTienda(catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
     }
 
     function filtrarPOS() {
       const q = document.getElementById('filtro-pos').value.toLowerCase();
-      const filtradas = catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-      renderPOS(filtradas);
+      renderPOS(catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
     }
 
     function abrirModalPrenda() { document.getElementById('modal-prenda').classList.remove('hidden'); document.getElementById('modal-prenda').classList.add('flex'); }
@@ -703,43 +561,50 @@
 
     async function guardarNuevaPrenda(e) {
       e.preventDefault();
-      const payload = {
-        sku: document.getElementById('m-sku').value,
-        nombre: document.getElementById('m-nombre').value,
-        tipoPieza: parseInt(document.getElementById('m-tipo').value),
-        talla: parseInt(document.getElementById('m-talla').value),
-        color: document.getElementById('m-color').value,
-        stockActual: parseInt(document.getElementById('m-stock').value),
-        stockMinimo: 3,
-        precioCosto: parseFloat(document.getElementById('m-costo').value),
-        precioVenta: parseFloat(document.getElementById('m-precio').value)
-      };
 
-      const res = await fetch('/api/prendas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const formData = new FormData();
+      formData.append('sku', document.getElementById('m-sku').value);
+      formData.append('nombre', document.getElementById('m-nombre').value);
+      formData.append('tipoPieza', document.getElementById('m-tipo').value);
+      formData.append('talla', document.getElementById('m-talla').value);
+      formData.append('color', document.getElementById('m-color').value);
+      formData.append('stockActual', document.getElementById('m-stock').value);
+      formData.append('stockMinimo', 3);
+      formData.append('precioCosto', document.getElementById('m-costo').value);
+      formData.append('precioVenta', document.getElementById('m-precio').value);
 
-      if (res.ok) {
-        cerrarModalPrenda();
-        document.getElementById('form-prenda').reset();
-        cargarDatos();
-      } else {
-        const err = await res.json();
-        alert('Error: ' + (err.error || 'Error al guardar'));
+      const archivoFoto = document.getElementById('m-imagen').files[0];
+      if (archivoFoto) {
+        formData.append('imagen', archivoFoto);
+      }
+
+      try {
+        const res = await fetch('/api/prendas', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok) {
+          cerrarModalPrenda();
+          document.getElementById('form-prenda').reset();
+          cargarDatos();
+          alert('¡Modelo y fotografía subidos exitosamente!');
+        } else {
+          const err = await res.json();
+          alert('Error: ' + (err.error || 'No se pudo guardar'));
+        }
+      } catch (err) {
+        alert('Error de conexión con el servidor.');
       }
     }
 
     async function eliminarPrenda(id) {
-      if (confirm('¿Dar de baja esta prenda del catálogo?')) {
+      if (confirm('¿Dar de baja esta prenda?')) {
         await fetch(`/api/prendas/${id}`, { method: 'DELETE' });
         cargarDatos();
       }
     }
 
-    // Fecha actual para POS
-    document.getElementById('fecha-pos').innerText = new Date().toLocaleDateString('es-ES');
     cargarDatos();
   </script>
 </body>

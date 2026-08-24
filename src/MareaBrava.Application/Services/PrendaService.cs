@@ -13,104 +13,81 @@ public class PrendaService : IPrendaService
         _prendaRepository = prendaRepository;
     }
 
-    public async Task<IEnumerable<PrendaDto>> ObtenerCatalogoAsync()
+    public async Task<IEnumerable<Prenda>> ObtenerCatalogoActivoAsync()
     {
-        var prendas = await _prendaRepository.ObtenerTodasAsync();
-        return prendas.Select(MapearADto);
+        return await _prendaRepository.ObtenerTodosAsync();
     }
 
-    public async Task<PrendaDto?> ObtenerPorIdAsync(int id)
+    public async Task<Prenda?> ObtenerPorIdAsync(int id)
     {
-        var prenda = await _prendaRepository.ObtenerPorIdAsync(id);
-        return prenda == null ? null : MapearADto(prenda);
+        return await _prendaRepository.ObtenerPorIdAsync(id);
     }
 
-    public async Task<PrendaDto?> ObtenerPorSkuAsync(string sku)
+    public async Task<IEnumerable<Prenda>> ObtenerAlertasBajoStockAsync()
     {
-        var prenda = await _prendaRepository.ObtenerPorSkuAsync(sku);
-        return prenda == null ? null : MapearADto(prenda);
+        return await _prendaRepository.ObtenerBajoStockAsync();
     }
 
-    public async Task<IEnumerable<PrendaDto>> ObtenerPrendasBajoStockAsync()
+    public async Task<Prenda> RegistrarNuevaPrendaAsync(CrearPrendaDto dto)
     {
-        var prendas = await _prendaRepository.ObtenerBajoStockAsync();
-        return prendas.Select(MapearADto);
-    }
-
-    public async Task<PrendaDto> CrearPrendaAsync(CrearPrendaDto dto)
-    {
-        var existente = await _prendaRepository.ObtenerPorSkuAsync(dto.Sku);
-        if (existente != null)
+        var skuExistente = await _prendaRepository.ObtenerPorSkuAsync(dto.Sku);
+        if (skuExistente != null)
         {
-            throw new InvalidOperationException($"Ya existe una prenda registrada con el SKU '{dto.Sku}'.");
+            throw new InvalidOperationException($"El SKU '{dto.Sku}' ya está registrado.");
         }
 
-        var nuevaPrenda = new Prenda
+        var prenda = new Prenda
         {
-            Sku = dto.Sku.Trim().ToUpperInvariant(),
-            Nombre = dto.Nombre.Trim(),
-            Descripcion = dto.Descripcion?.Trim(),
+            Sku = dto.Sku.ToUpperInvariant(),
+            Nombre = dto.Nombre,
+            Descripcion = dto.Descripcion,
             TipoPieza = dto.TipoPieza,
             Talla = dto.Talla,
-            Color = dto.Color.Trim(),
+            Color = dto.Color,
             PrecioCosto = dto.PrecioCosto,
             PrecioVenta = dto.PrecioVenta,
             StockActual = dto.StockActual,
             StockMinimo = dto.StockMinimo,
-            ImagenUrl = dto.ImagenUrl?.Trim()
+            ImagenUrl = dto.ImagenUrl,
+            Activo = true
         };
 
-        var creada = await _prendaRepository.AgregarAsync(nuevaPrenda);
-        return MapearADto(creada);
+        return await _prendaRepository.AgregarAsync(prenda);
     }
 
-    public async Task ActualizarPrendaAsync(int id, CrearPrendaDto dto)
+    public async Task<Prenda> ActualizarPrendaAsync(int id, CrearPrendaDto dto)
     {
         var prenda = await _prendaRepository.ObtenerPorIdAsync(id);
         if (prenda == null)
         {
-            throw new KeyNotFoundException($"No se encontró la prenda con ID {id}.");
+            throw new InvalidOperationException("La prenda solicitada no existe.");
         }
 
-        var duplicadoSku = await _prendaRepository.ObtenerPorSkuAsync(dto.Sku);
-        if (duplicadoSku != null && duplicadoSku.Id != id)
-        {
-            throw new InvalidOperationException($"El SKU '{dto.Sku}' ya está en uso por otra prenda.");
-        }
-
-        prenda.Sku = dto.Sku.Trim().ToUpperInvariant();
-        prenda.Nombre = dto.Nombre.Trim();
-        prenda.Descripcion = dto.Descripcion?.Trim();
+        prenda.Nombre = dto.Nombre;
+        prenda.Descripcion = dto.Descripcion;
         prenda.TipoPieza = dto.TipoPieza;
         prenda.Talla = dto.Talla;
-        prenda.Color = dto.Color.Trim();
+        prenda.Color = dto.Color;
         prenda.PrecioCosto = dto.PrecioCosto;
         prenda.PrecioVenta = dto.PrecioVenta;
         prenda.StockActual = dto.StockActual;
         prenda.StockMinimo = dto.StockMinimo;
-        prenda.ImagenUrl = dto.ImagenUrl?.Trim();
+        if (!string.IsNullOrEmpty(dto.ImagenUrl))
+        {
+            prenda.ImagenUrl = dto.ImagenUrl;
+        }
 
         await _prendaRepository.ActualizarAsync(prenda);
+        return prenda;
     }
 
-    public async Task EliminarPrendaAsync(int id)
+    public async Task<bool> DarDeBajaPrendaAsync(int id)
     {
-        await _prendaRepository.EliminarAsync(id);
-    }
+        var prenda = await _prendaRepository.ObtenerPorIdAsync(id);
+        if (prenda == null) return false;
 
-    private static PrendaDto MapearADto(Prenda p) => new()
-    {
-        Id = p.Id,
-        Sku = p.Sku,
-        Nombre = p.Nombre,
-        Descripcion = p.Descripcion,
-        TipoPieza = p.TipoPieza,
-        Talla = p.Talla,
-        Color = p.Color,
-        PrecioCosto = p.PrecioCosto,
-        PrecioVenta = p.PrecioVenta,
-        StockActual = p.StockActual,
-        StockMinimo = p.StockMinimo,
-        ImagenUrl = p.ImagenUrl
-    };
+        prenda.Activo = false;
+        await _prendaRepository.ActualizarAsync(prenda);
+        return true;
+    }
 }

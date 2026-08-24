@@ -1,24 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
 using MareaBrava.Application.DTOs;
 using MareaBrava.Application.Interfaces;
+using MareaBrava.Domain.Enums;
 
 namespace MareaBrava.WebUI.Controllers;
+
+public class SubirPrendaForm
+{
+    public string Sku { get; set; } = string.Empty;
+    public string Nombre { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+    public TipoPieza TipoPieza { get; set; }
+    public TallaPrenda Talla { get; set; }
+    public string Color { get; set; } = string.Empty;
+    public decimal PrecioCosto { get; set; }
+    public decimal PrecioVenta { get; set; }
+    public int StockActual { get; set; }
+    public int StockMinimo { get; set; } = 3;
+    public IFormFile? Imagen { get; set; }
+}
 
 [ApiController]
 [Route("api/[controller]")]
 public class PrendasController : ControllerBase
 {
     private readonly IPrendaService _prendaService;
+    private readonly IWebHostEnvironment _env;
 
-    public PrendasController(IPrendaService prendaService)
+    public PrendasController(IPrendaService prendaService, IWebHostEnvironment env)
     {
         _prendaService = prendaService;
+        _env = env;
     }
 
     [HttpGet]
     public async Task<IActionResult> ObtenerTodas()
     {
-        var prendas = await _prendaService.ObtenerCatalogoAsync();
+        var prendas = await _prendaService.ObtenerCatalogoActivoAsync();
         return Ok(prendas);
     }
 
@@ -26,46 +44,73 @@ public class PrendasController : ControllerBase
     public async Task<IActionResult> ObtenerPorId(int id)
     {
         var prenda = await _prendaService.ObtenerPorIdAsync(id);
-        if (prenda == null) return NotFound(new { mensaje = $"Prenda con ID {id} no encontrada." });
+        if (prenda == null) return NotFound(new { mensaje = "Prenda no encontrada." });
         return Ok(prenda);
     }
 
     [HttpGet("bajo-stock")]
     public async Task<IActionResult> ObtenerBajoStock()
     {
-        var prendas = await _prendaService.ObtenerPrendasBajoStockAsync();
-        return Ok(prendas);
+        var alertas = await _prendaService.ObtenerAlertasBajoStockAsync();
+        return Ok(alertas);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Crear([FromBody] CrearPrendaDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Crear([FromForm] SubirPrendaForm form)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
+        string? rutaRelativaImagen = null;
+
+        if (form.Imagen != null && form.Imagen.Length > 0)
+        {
+            var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(form.Imagen.FileName).ToLowerInvariant();
+
+            if (!extensionesPermitidas.Contains(extension))
+            {
+                return BadRequest(new { error = "Formato no válido. Usa JPG, PNG o WEBP." });
+            }
+
+            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var carpetaUploads = Path.Combine(webRoot, "uploads");
+            
+            if (!Directory.Exists(carpetaUploads))
+            {
+                Directory.CreateDirectory(carpetaUploads);
+            }
+
+            var nombreUnico = $"{Guid.NewGuid()}{extension}";
+            var rutaFisica = Path.Combine(carpetaUploads, nombreUnico);
+
+            using (var stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                await form.Imagen.CopyToAsync(stream);
+            }
+
+            rutaRelativaImagen = $"/uploads/{nombreUnico}";
+        }
+
+        var dto = new CrearPrendaDto
+        {
+            Sku = form.Sku.ToUpperInvariant(),
+            Nombre = form.Nombre,
+            Descripcion = form.Descripcion,
+            TipoPieza = form.TipoPieza,
+            Talla = form.Talla,
+            Color = form.Color,
+            PrecioCosto = form.PrecioCosto,
+            PrecioVenta = form.PrecioVenta,
+            StockActual = form.StockActual,
+            StockMinimo = form.StockMinimo,
+            ImagenUrl = rutaRelativaImagen
+        };
+
         try
         {
-            var prendaCreada = await _prendaService.CrearPrendaAsync(dto);
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = prendaCreada.Id }, prendaCreada);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Actualizar(int id, [FromBody] CrearPrendaDto dto)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        try
-        {
-            await _prendaService.ActualizarPrendaAsync(id, dto);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
+            var resultado = await _prendaService.RegistrarNuevaPrendaAsync(dto);
+            return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id }, resultado);
         }
         catch (InvalidOperationException ex)
         {
@@ -74,9 +119,10 @@ public class PrendasController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Eliminar(int id)
+    public async Task<IActionResult> DarDeBaja(int id)
     {
-        await _prendaService.EliminarPrendaAsync(id);
+        var exito = await _prendaService.DarDeBajaPrendaAsync(id);
+        if (!exito) return NotFound(new { mensaje = "Prenda no encontrada para dar de baja." });
         return NoContent();
     }
 }
