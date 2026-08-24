@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marea Brava | Sistema de Ventas e Inventario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-cyan-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-water text-3xl text-cyan-400"></i>
+        <div>
+          <h1 class="text-2xl font-bold tracking-wider">MAREA BRAVA</h1>
+          <p class="text-xs text-cyan-200">Trajes de Baño & Ropa de Playa</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/swagger" target="_blank" class="text-xs bg-cyan-800 hover:bg-cyan-700 px-3 py-1.5 rounded-lg border border-cyan-600 transition">
+          <i class="fa-solid fa-code mr-1"></i> API Docs
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 flex space-x-8">
+      <button onclick="cambiarTab('inventario')" id="tab-inventario" class="py-3 px-2 border-b-2 border-cyan-600 font-medium text-cyan-700 flex items-center space-x-2">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>Inventario</span>
+      </button>
+      <button onclick="cambiarTab('pos')" id="tab-pos" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium flex items-center space-x-2">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>Punto de Venta</span>
+      </button>
+      <button onclick="cambiarTab('ventas')" id="tab-ventas" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium flex items-center space-x-2">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Historial de Ventas</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+
+    <!-- SECCIÓN 1: INVENTARIO -->
+    <section id="sec-inventario" class="space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Catálogo de Prendas</h2>
+          <p class="text-sm text-slate-500">Administra el stock y precios de las prendas</p>
+        </div>
+        <button onclick="abrirModalPrenda()" class="bg-cyan-600 hover:bg-cyan-700 text-white font-medium px-4 py-2 rounded-lg shadow flex items-center space-x-2 transition">
+          <i class="fa-solid fa-plus"></i>
+          <span>Nueva Prenda</span>
+        </button>
+      </div>
+
+      <!-- Tabla de Prendas -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b">
+              <th class="p-4">SKU</th>
+              <th class="p-4">Nombre</th>
+              <th class="p-4">Color / Talla</th>
+              <th class="p-4 text-right">Precio Costo</th>
+              <th class="p-4 text-right">Precio Venta</th>
+              <th class="p-4 text-center">Stock</th>
+              <th class="p-4 text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="lista-prendas" class="divide-y text-sm">
+            <tr><td colspan="7" class="p-4 text-center text-slate-400">Cargando inventario...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: PUNTO DE VENTA (POS) -->
+    <section id="sec-pos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Catálogo para venta -->
+      <div class="lg:col-span-2 space-y-4">
+        <h2 class="text-xl font-bold text-slate-800">Seleccionar Artículos</h2>
+        <div id="grid-pos-prendas" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Cards dinámicas de prendas -->
+        </div>
+      </div>
+
+      <!-- Carrito / Ticket de Venta -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col h-fit">
+        <h3 class="font-bold text-lg border-b pb-3 text-slate-800 flex items-center justify-between">
+          <span>Ticket de Venta</span>
+          <i class="fa-solid fa-cart-shopping text-cyan-600"></i>
+        </h3>
+        
+        <div id="carrito-items" class="py-4 space-y-3 min-h-[180px] text-sm divide-y">
+          <p class="text-slate-400 text-center py-8">No hay prendas agregadas</p>
+        </div>
+
+        <div class="border-t pt-4 space-y-3">
+          <div class="flex justify-between font-bold text-xl text-slate-800">
+            <span>Total:</span>
+            <span id="carrito-total" class="text-cyan-700">$0.00</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Método de Pago</label>
+            <select id="pos-metodo-pago" class="w-full border rounded-lg p-2 text-sm">
+              <option value="1">Efectivo</option>
+              <option value="2">Tarjeta</option>
+              <option value="3">Transferencia</option>
+            </select>
+          </div>
+
+          <button onclick="completarVenta()" id="btn-cobrar" disabled class="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-lg shadow transition">
+            Cobrar Venta
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: HISTORIAL DE VENTAS -->
+    <section id="sec-ventas" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Historial de Ventas</h2>
+          <p class="text-sm text-slate-500">Tickets emitidos y registro de ingresos</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b">
+              <th class="p-4">Folio Ticket</th>
+              <th class="p-4">Fecha</th>
+              <th class="p-4">Método</th>
+              <th class="p-4">Artículos</th>
+              <th class="p-4 text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody id="lista-ventas" class="divide-y text-sm">
+            <tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando ventas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Registrar Prenda -->
+  <div id="modal-prenda" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-lg text-slate-800">Registrar Nueva Prenda</h3>
+        <button onclick="cerrarModalPrenda()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <form id="form-prenda" onsubmit="guardarPrenda(event)" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Código SKU</label>
+          <input type="text" id="p-sku" required placeholder="Ej: BIK-AZU-004-M" class="w-full border rounded-lg p-2 uppercase" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre</label>
+          <input type="text" id="p-nombre" required placeholder="Nombre de la prenda" class="w-full border rounded-lg p-2" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Pieza</label>
+            <select id="p-tipo" class="w-full border rounded-lg p-2">
+              <option value="1">Una Pieza</option>
+              <option value="2">Dos Piezas</option>
+              <option value="3">Top Individual</option>
+              <option value="4">Bottom Individual</option>
+              <option value="5">Accesorio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Talla</label>
+            <select id="p-talla" class="w-full border rounded-lg p-2">
+              <option value="1">XS</option>
+              <option value="2">S</option>
+              <option value="3" selected>M</option>
+              <option value="4">L</option>
+              <option value="5">XL</option>
+              <option value="6">Unitalla</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Color</label>
+            <input type="text" id="p-color" required placeholder="Ej: Azul Marino" class="w-full border rounded-lg p-2" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Stock Inicial</label>
+            <input type="number" id="p-stock" required min="0" value="10" class="w-full border rounded-lg p-2" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Precio Costo ($)</label>
+            <input type="number" id="p-costo" step="0.01" required value="200" class="w-full border rounded-lg p-2" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Precio Venta ($)</label>
+            <input type="number" id="p-precio" step="0.01" required value="450" class="w-full border rounded-lg p-2" />
+          </div>
+        </div>
+        <div class="pt-3 flex justify-end space-x-3">
+          <button type="button" onclick="cerrarModalPrenda()" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg shadow">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Frontend -->
+  <script>
+    let prendas = [];
+    let carrito = [];
+
+    const metodosPago = { 1: 'Efectivo', 2: 'Tarjeta', 3: 'Transferencia' };
+    const tallas = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla' };
+
+    async function cargarInventario() {
+      try {
+        const res = await fetch('/api/prendas');
+        prendas = await res.json();
+        renderTablaInventario();
+        renderGridPOS();
+      } catch (e) {
+        console.error('Error al cargar inventario:', e);
+      }
+    }
+
+    function renderTablaInventario() {
+      const tbody = document.getElementById('lista-prendas');
+      if (!prendas.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay prendas registradas</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = prendas.map(p => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-4 font-mono font-bold text-cyan-800">${p.sku}</td>
+          <td class="p-4 font-medium">${p.nombre}</td>
+          <td class="p-4">${p.color} / <span class="bg-slate-200 px-2 py-0.5 rounded text-xs">${tallas[p.talla] || p.talla}</span></td>
+          <td class="p-4 text-right text-slate-500">$${p.precioCosto.toFixed(2)}</td>
+          <td class="p-4 text-right font-bold text-slate-800">$${p.precioVenta.toFixed(2)}</td>
+          <td class="p-4 text-center font-bold ${p.stockActual <= p.stockMinimo ? 'text-amber-600' : 'text-slate-700'}">${p.stockActual}</td>
+          <td class="p-4 text-center">
+            ${p.stockActual <= p.stockMinimo 
+              ? '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-semibold">Bajo Stock</span>'
+              : '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-semibold">Disponible</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderGridPOS() {
+      const grid = document.getElementById('grid-pos-prendas');
+      grid.innerHTML = prendas.map(p => `
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-start">
+              <h4 class="font-bold text-slate-800">${p.nombre}</h4>
+              <span class="bg-cyan-100 text-cyan-800 text-xs font-bold px-2 py-1 rounded">${tallas[p.talla] || p.talla}</span>
+            </div>
+            <p class="text-xs font-mono text-slate-400">${p.sku} • ${p.color}</p>
+            <p class="text-xs mt-1 text-slate-500">Stock: <span class="font-bold">${p.stockActual}</span></p>
+          </div>
+          <div class="flex justify-between items-center border-t pt-2">
+            <span class="font-bold text-lg text-cyan-700">$${p.precioVenta.toFixed(2)}</span>
+            <button onclick="agregarAlCarrito(${p.id})" ${p.stockActual === 0 ? 'disabled' : ''} class="bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg text-sm transition">
+              <i class="fa-solid fa-cart-plus mr-1"></i> Agregar
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function agregarAlCarrito(prendaId) {
+      const p = prendas.find(item => item.id === prendaId);
+      if (!p) return;
+
+      const itemEnCarrito = carrito.find(item => item.prendaId === prendaId);
+      if (itemEnCarrito) {
+        if (itemEnCarrito.cantidad < p.stockActual) {
+          itemEnCarrito.cantidad++;
+        } else {
+          alert(`No puedes agregar más de ${p.stockActual} piezas en stock.`);
+        }
+      } else {
+        carrito.push({ prendaId: p.id, nombre: p.nombre, precio: p.precioVenta, cantidad: 1 });
+      }
+      renderCarrito();
+    }
+
+    function renderCarrito() {
+      const cont = document.getElementById('carrito-items');
+      const totalEl = document.getElementById('carrito-total');
+      const btnCobrar = document.getElementById('btn-cobrar');
+
+      if (!carrito.length) {
+        cont.innerHTML = '<p class="text-slate-400 text-center py-8">No hay prendas agregadas</p>';
+        totalEl.innerText = '$0.00';
+        btnCobrar.disabled = true;
+        return;
+      }
+
+      let total = 0;
+      cont.innerHTML = carrito.map((item, idx) => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        return `
+          <div class="py-2 flex justify-between items-center">
+            <div>
+              <p class="font-medium text-slate-800">${item.nombre}</p>
+              <p class="text-xs text-slate-500">${item.cantidad} x $${item.precio.toFixed(2)} = $${subtotal.toFixed(2)}</p>
+            </div>
+            <button onclick="eliminarDelCarrito(${idx})" class="text-red-400 hover:text-red-600 text-xs"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      }).join('');
+
+      totalEl.innerText = `$${total.toFixed(2)}`;
+      btnCobrar.disabled = false;
+    }
+
+    function eliminarDelCarrito(idx) {
+      carrito.splice(idx, 1);
+      renderCarrito();
+    }
+
+    async function completarVenta() {
+      if (!carrito.length) return;
+
+      const payload = {
+        usuarioId: 1, // Usuario administrador
+        metodoPago: parseInt(document.getElementById('pos-metodo-pago').value),
+        lineas: carrito.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad }))
+      };
+
+      try {
+        const res = await fetch('/api/ventas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert('Error al registrar la venta: ' + (err.error || 'Error desconocido'));
+          return;
+        }
+
+        const venta = await res.json();
+        alert(`¡Venta realizada con éxito!\nFolio de Ticket: ${venta.numeroTicket}\nTotal: $${venta.total.toFixed(2)}`);
+        carrito = [];
+        renderCarrito();
+        cargarInventario();
+      } catch (e) {
+        console.error(e);
+        alert('Error en el servidor al cobrar la venta.');
+      }
+    }
+
+    async function cargarVentas() {
+      try {
+        const res = await fetch('/api/ventas');
+        const ventas = await res.json();
+        const tbody = document.getElementById('lista-ventas');
+        
+        if (!ventas.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay ventas registradas aún</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = ventas.map(v => `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-4 font-mono font-bold text-cyan-800">${v.numeroTicket}</td>
+            <td class="p-4 text-slate-600">${new Date(v.fechaVenta).toLocaleString()}</td>
+            <td class="p-4"><span class="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded font-semibold">${metodosPago[v.metodoPago] || 'Otro'}</span></td>
+            <td class="p-4">${v.detalles.map(d => `${d.cantidad}x ${d.nombrePrenda}`).join(', ')}</td>
+            <td class="p-4 text-right font-bold text-emerald-700">$${v.total.toFixed(2)}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Error al cargar ventas:', e);
+      }
+    }
+
+    function cambiarTab(tab) {
+      document.getElementById('sec-inventario').classList.toggle('hidden', tab !== 'inventario');
+      document.getElementById('sec-pos').classList.toggle('hidden', tab !== 'pos');
+      document.getElementById('sec-ventas').classList.toggle('hidden', tab !== 'ventas');
+
+      ['inventario', 'pos', 'ventas'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tab) {
+          btn.className = 'py-3 px-2 border-b-2 border-cyan-600 font-medium text-cyan-700 flex items-center space-x-2';
+        } else {
+          btn.className = 'py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium flex items-center space-x-2';
+        }
+      });
+
+      if (tab === 'ventas') cargarVentas();
+    }
+
+    function abrirModalPrenda() { document.getElementById('modal-prenda').classList.remove('hidden'); document.getElementById('modal-prenda').classList.add('flex'); }
+    function cerrarModalPrenda() { document.getElementById('modal-prenda').classList.add('hidden'); document.getElementById('modal-prenda').classList.remove('flex'); }
+
+    async function guardarPrenda(e) {
+      e.preventDefault();
+      const payload = {
+        sku: document.getElementById('p-sku').value,
+        nombre: document.getElementById('p-nombre').value,
+        tipoPieza: parseInt(document.getElementById('p-tipo').value),
+        talla: parseInt(document.getElementById('p-talla').value),
+        color: document.getElementById('p-color').value,
+        stockActual: parseInt(document.getElementById('p-stock').value),
+        stockMinimo: 3,
+        precioCosto: parseFloat(document.getElementById('p-costo').value),
+        precioVenta: parseFloat(document.getElementById('p-precio').value)
+      };
+
+      const res = await fetch('/api/prendas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        cerrarModalPrenda();
+        document.getElementById('form-prenda').reset();
+        cargarInventario();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.error || 'No se pudo registrar la prenda.'));
+      }
+    }
+
+    // Inicializar al abrir la página
+    cargarInventario();
+  </script>
+</body>
+</html>
