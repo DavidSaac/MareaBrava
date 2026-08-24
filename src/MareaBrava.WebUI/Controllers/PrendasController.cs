@@ -20,6 +20,11 @@ public class SubirPrendaForm
     public IFormFile? Imagen { get; set; }
 }
 
+public class AjustarStockDto
+{
+    public int Cantidad { get; set; }
+}
+
 [ApiController]
 [Route("api/[controller]")]
 public class PrendasController : ControllerBase
@@ -61,36 +66,7 @@ public class PrendasController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        string? rutaRelativaImagen = null;
-
-        if (form.Imagen != null && form.Imagen.Length > 0)
-        {
-            var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-            var extension = Path.GetExtension(form.Imagen.FileName).ToLowerInvariant();
-
-            if (!extensionesPermitidas.Contains(extension))
-            {
-                return BadRequest(new { error = "Formato no válido. Usa JPG, PNG o WEBP." });
-            }
-
-            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var carpetaUploads = Path.Combine(webRoot, "uploads");
-            
-            if (!Directory.Exists(carpetaUploads))
-            {
-                Directory.CreateDirectory(carpetaUploads);
-            }
-
-            var nombreUnico = $"{Guid.NewGuid()}{extension}";
-            var rutaFisica = Path.Combine(carpetaUploads, nombreUnico);
-
-            using (var stream = new FileStream(rutaFisica, FileMode.Create))
-            {
-                await form.Imagen.CopyToAsync(stream);
-            }
-
-            rutaRelativaImagen = $"/uploads/{nombreUnico}";
-        }
+        string? rutaRelativaImagen = await GuardarImagenSiExiste(form.Imagen);
 
         var dto = new CrearPrendaDto
         {
@@ -118,11 +94,87 @@ public class PrendasController : ControllerBase
         }
     }
 
+    [HttpPut("{id:int}")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Actualizar(int id, [FromForm] SubirPrendaForm form)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        string? rutaRelativaImagen = await GuardarImagenSiExiste(form.Imagen);
+
+        var dto = new CrearPrendaDto
+        {
+            Sku = form.Sku.ToUpperInvariant(),
+            Nombre = form.Nombre,
+            Descripcion = form.Descripcion,
+            TipoPieza = form.TipoPieza,
+            Talla = form.Talla,
+            Color = form.Color,
+            PrecioCosto = form.PrecioCosto,
+            PrecioVenta = form.PrecioVenta,
+            StockActual = form.StockActual,
+            StockMinimo = form.StockMinimo,
+            ImagenUrl = rutaRelativaImagen
+        };
+
+        try
+        {
+            var resultado = await _prendaService.ActualizarPrendaAsync(id, dto);
+            return Ok(resultado);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:int}/stock")]
+    public async Task<IActionResult> AjustarStock(int id, [FromBody] AjustarStockDto body)
+    {
+        try
+        {
+            var resultado = await _prendaService.AjustarStockAsync(id, body.Cantidad);
+            return Ok(resultado);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DarDeBaja(int id)
     {
         var exito = await _prendaService.DarDeBajaPrendaAsync(id);
         if (!exito) return NotFound(new { mensaje = "Prenda no encontrada para dar de baja." });
         return NoContent();
+    }
+
+    private async Task<string?> GuardarImagenSiExiste(IFormFile? imagen)
+    {
+        if (imagen == null || imagen.Length == 0) return null;
+
+        var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        var extension = Path.GetExtension(imagen.FileName).ToLowerInvariant();
+
+        if (!extensionesPermitidas.Contains(extension)) return null;
+
+        var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var carpetaUploads = Path.Combine(webRoot, "uploads");
+
+        if (!Directory.Exists(carpetaUploads))
+        {
+            Directory.CreateDirectory(carpetaUploads);
+        }
+
+        var nombreUnico = $"{Guid.NewGuid()}{extension}";
+        var rutaFisica = Path.Combine(carpetaUploads, nombreUnico);
+
+        using (var stream = new FileStream(rutaFisica, FileMode.Create))
+        {
+            await imagen.CopyToAsync(stream);
+        }
+
+        return $"/uploads/{nombreUnico}";
     }
 }

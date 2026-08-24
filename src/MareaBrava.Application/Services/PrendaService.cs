@@ -63,6 +63,7 @@ public class PrendaService : IPrendaService
             throw new InvalidOperationException("La prenda solicitada no existe.");
         }
 
+        prenda.Sku = dto.Sku.ToUpperInvariant();
         prenda.Nombre = dto.Nombre;
         prenda.Descripcion = dto.Descripcion;
         prenda.TipoPieza = dto.TipoPieza;
@@ -72,11 +73,30 @@ public class PrendaService : IPrendaService
         prenda.PrecioVenta = dto.PrecioVenta;
         prenda.StockActual = dto.StockActual;
         prenda.StockMinimo = dto.StockMinimo;
+
         if (!string.IsNullOrEmpty(dto.ImagenUrl))
         {
             prenda.ImagenUrl = dto.ImagenUrl;
         }
 
+        await _prendaRepository.ActualizarAsync(prenda);
+        return prenda;
+    }
+
+    public async Task<Prenda> AjustarStockAsync(int id, int cambioStock)
+    {
+        var prenda = await _prendaRepository.ObtenerPorIdAsync(id);
+        if (prenda == null)
+        {
+            throw new InvalidOperationException("La prenda solicitada no existe.");
+        }
+
+        if (prenda.StockActual + cambioStock < 0)
+        {
+            throw new InvalidOperationException("El stock no puede ser menor a cero.");
+        }
+
+        prenda.StockActual += cambioStock;
         await _prendaRepository.ActualizarAsync(prenda);
         return prenda;
     }
