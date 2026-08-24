@@ -7,6 +7,5 @@ public enum TallaPrenda
     M = 3,
     L = 4,
     XL = 5,
-    XXL = 6,
-    Unitalla = 7
+    Unitalla = 6
 }

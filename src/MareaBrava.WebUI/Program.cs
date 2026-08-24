@@ -10,9 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<MareaBravaDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Inyección de dependencias (Clean Architecture)
+// Inyección de dependencias - Repositorios
 builder.Services.AddScoped<IPrendaRepository, PrendaRepository>();
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+
+// Inyección de dependencias - Servicios
 builder.Services.AddScoped<IPrendaService, PrendaService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
 
 builder.Services.AddControllers();
 
