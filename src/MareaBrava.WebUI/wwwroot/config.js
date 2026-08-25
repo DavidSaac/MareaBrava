@@ -2,7 +2,7 @@
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 // Replace this URL with the public Render service URL before deploying the frontend.
-const RENDER_BACKEND_URL = "https://marea-brava-api.onrender.com";
+const RENDER_BACKEND_URL = "https://mareabrava-1.onrender.com";
 
 const BASE_URL = isLocalhost ? "" : RENDER_BACKEND_URL;
 
