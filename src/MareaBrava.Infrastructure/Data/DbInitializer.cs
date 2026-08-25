@@ -8,7 +8,6 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(MareaBravaDbContext context)
     {
-        // 1. Crear las tablas si no existen físicamente
         await context.Database.EnsureCreatedAsync();
 
         // 2. Sembrar Usuarios si la tabla está vacía
@@ -19,7 +18,7 @@ public static class DbInitializer
                 {
                     NombreCompleto = "Ximena",
                     Email = "ximena@mareabrava.com",
-                    PasswordHash = "Admin123!",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
                     Rol = RolUsuario.Administrador,
                     Activo = true,
                     FechaCreacion = DateTime.UtcNow
@@ -28,7 +27,7 @@ public static class DbInitializer
                 {
                     NombreCompleto = "Elizabeth",
                     Email = "elizabeth@mareabrava.com",
-                    PasswordHash = "Cajero123!",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Cajero123!"),
                     Rol = RolUsuario.Cajero,
                     Activo = true,
                     FechaCreacion = DateTime.UtcNow

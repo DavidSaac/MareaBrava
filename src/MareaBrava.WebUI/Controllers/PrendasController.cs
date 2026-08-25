@@ -10,6 +10,7 @@ namespace MareaBrava.WebUI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class PrendasController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;
@@ -66,6 +67,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpPost]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CrearPrenda([FromForm] CrearPrendaFormDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Sku) || string.IsNullOrWhiteSpace(dto.Nombre))
@@ -116,6 +118,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditarPrenda(int id, [FromForm] EditarPrendaFormDto dto)
     {
         var prenda = await _context.Prendas.FindAsync(id);
@@ -154,6 +157,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpPatch("{id}/stock")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> AjustarStock(int id, [FromBody] AjustarStockDto dto)
     {
         var prenda = await _context.Prendas.FindAsync(id);
@@ -167,6 +171,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EliminarPrenda(int id)
     {
         var prenda = await _context.Prendas.FindAsync(id);
@@ -180,6 +185,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpGet("descargar-fotos-zip")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> DescargarFotosZip([FromQuery] int? talla)
     {
         var query = _context.Prendas.Where(p => p.Activo && !string.IsNullOrEmpty(p.ImagenUrl)).AsQueryable();
@@ -216,6 +222,7 @@ public class PrendasController : ControllerBase
     }
 
     [HttpGet("exportar-excel")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> ExportarInventarioExcel()
     {
         var prendas = await _context.Prendas

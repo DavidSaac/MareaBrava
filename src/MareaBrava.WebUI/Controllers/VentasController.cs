@@ -1,4 +1,6 @@
 using System.Text;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MareaBrava.Domain.Entities;
@@ -9,6 +11,7 @@ namespace MareaBrava.WebUI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class VentasController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;
@@ -23,6 +26,15 @@ public class VentasController : ControllerBase
     {
         if (dto.Lineas == null || !dto.Lineas.Any())
             return BadRequest(new { error = "El ticket no contiene prendas." });
+
+        if (dto.Lineas.Any(l => l.Cantidad <= 0))
+            return BadRequest(new { error = "La cantidad de cada prenda debe ser mayor que cero." });
+
+        if (!Enum.IsDefined(typeof(MetodoPago), dto.MetodoPago))
+            return BadRequest(new { error = "El método de pago no es válido." });
+
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var usuarioId))
+            return Unauthorized();
 
         var prendaIds = dto.Lineas.Select(l => l.PrendaId).ToList();
         var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
@@ -58,7 +70,7 @@ public class VentasController : ControllerBase
         var venta = new Venta
         {
             NumeroTicket = numeroTicket,
-            UsuarioId = dto.UsuarioId,
+            UsuarioId = usuarioId,
             MetodoPago = (MetodoPago)dto.MetodoPago,
             Total = totalVenta,
             Detalles = detalles,
@@ -89,6 +101,12 @@ public class VentasController : ControllerBase
 
         foreach (var vOff in ventasOffline)
         {
+            if (vOff.Lineas == null || vOff.Lineas.Count == 0 || vOff.Lineas.Any(l => l.Cantidad <= 0))
+                return BadRequest(new { error = "Cada venta offline debe contener cantidades mayores que cero." });
+
+            if (!Enum.IsDefined(typeof(MetodoPago), vOff.MetodoPago))
+                return BadRequest(new { error = "El método de pago no es válido." });
+
             var prendaIds = vOff.Lineas.Select(l => l.PrendaId).ToList();
             var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
 
@@ -100,7 +118,10 @@ public class VentasController : ControllerBase
                 var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
                 if (prenda != null && prenda.Activo)
                 {
-                    prenda.StockActual = Math.Max(0, prenda.StockActual - linea.Cantidad);
+                    if (prenda.StockActual < linea.Cantidad)
+                        return BadRequest(new { error = $"Stock insuficiente para '{prenda.Nombre}'." });
+
+                    prenda.StockActual -= linea.Cantidad;
 
                     var detalle = new DetalleVenta
                     {
@@ -120,7 +141,7 @@ public class VentasController : ControllerBase
             var venta = new Venta
             {
                 NumeroTicket = numeroTicket,
-                UsuarioId = vOff.UsuarioId > 0 ? vOff.UsuarioId : 1,
+                UsuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
                 MetodoPago = (MetodoPago)vOff.MetodoPago,
                 Total = totalVenta > 0 ? totalVenta : vOff.TotalEstimado,
                 Detalles = detalles,
@@ -189,6 +210,7 @@ public class VentasController : ControllerBase
     }
 
     [HttpPost("{id}/cancelar")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CancelarVenta(int id)
     {
         var venta = await _context.Ventas
@@ -215,6 +237,7 @@ public class VentasController : ControllerBase
     }
 
     [HttpGet("exportar-excel")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> ExportarVentasExcel([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
     {
         var query = _context.Ventas

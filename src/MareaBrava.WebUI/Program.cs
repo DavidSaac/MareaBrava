@@ -1,47 +1,79 @@
-using Microsoft.EntityFrameworkCore;
-using MareaBrava.Application.Interfaces;
-using MareaBrava.Application.Services;
+using MareaBrava.Infrastructure;
 using MareaBrava.Infrastructure.Data;
-using MareaBrava.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Base de datos SQLite
-builder.Services.AddDbContext<MareaBravaDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// 1. Configurar CORS para permitir Cloudflare Pages y pruebas locales
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CloudflarePolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5000",
+                "https://localhost:5001",
+                "https://mareabrava.pages.dev",
+                "https://mareabrava.mx",
+                "https://www.mareabrava.mx",
+                "https://mareabrava.com",
+                "https://www.mareabrava.com")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
 
-// Repositorios y Servicios
-builder.Services.AddScoped<IPrendaRepository, PrendaRepository>();
-builder.Services.AddScoped<IVentaRepository, VentaRepository>();
-builder.Services.AddScoped<IPrendaService, PrendaService>();
-builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "MareaBrava.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+    });
+builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// 2. Inyectar Capa de Infraestructura (EF Core, SQLite, Repositorios)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// 3. Controladores API con serialización JSON estándar
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 var app = builder.Build();
 
-// Sembrar datos iniciales
+// 4. Inicializar base de datos y datos semilla automáticamente
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<MareaBravaDbContext>();
     await DbInitializer.SeedAsync(context);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Marea Brava API v1");
-        c.RoutePrefix = "swagger"; // Swagger estará disponible en /swagger
-    });
-}
+// 5. Aplicar CORS
+app.UseCors("CloudflarePolicy");
 
-app.UseDefaultFiles(); // Busca automáticamente index.html en wwwroot
+// 6. Servir archivos estáticos (uploads, fotos, etc.)
 app.UseStaticFiles();
-app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+// 7. Mapear Controladores
 app.MapControllers();
+
+// 8. Fallback para servir index.html si se consulta la raíz directa
+app.MapFallbackToFile("index.html");
 
 app.Run();

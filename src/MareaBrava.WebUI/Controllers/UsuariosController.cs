@@ -9,6 +9,7 @@ namespace MareaBrava.WebUI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
 public class UsuariosController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;

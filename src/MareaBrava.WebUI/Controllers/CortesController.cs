@@ -8,6 +8,7 @@ namespace MareaBrava.WebUI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class CortesController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;
@@ -60,6 +61,7 @@ public class CortesController : ControllerBase
 
     // Abrir turno con Fondo Inicial
     [HttpPost("abrir")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador,Cajero")]
     public async Task<IActionResult> AbrirTurno([FromBody] AbrirTurnoRequest req)
     {
         var existeAbierto = await _context.CortesCaja.AnyAsync(c => c.Abierto);
@@ -82,6 +84,7 @@ public class CortesController : ControllerBase
 
     // Cerrar turno con Arqueo de Dinero
     [HttpPost("cerrar")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador,Cajero")]
     public async Task<IActionResult> CerrarTurno([FromBody] CerrarTurnoRequest req)
     {
         var corte = await _context.CortesCaja.FirstOrDefaultAsync(c => c.Id == req.CorteId && c.Abierto);
@@ -111,6 +114,7 @@ public class CortesController : ControllerBase
 
     // Historial de Cortes (para la Dueña)
     [HttpGet("historial")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
     public async Task<IActionResult> ObtenerHistorial()
     {
         var cortes = await _context.CortesCaja

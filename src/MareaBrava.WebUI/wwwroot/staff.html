@@ -970,17 +970,12 @@
           alert('Error: ' + (err.error || 'Credenciales incorrectas'));
         }
       } catch (err) {
-        const saved = JSON.parse(localStorage.getItem('mb_staff_user'));
-        if (saved && saved.email === correo) {
-          usuarioStaff = saved;
-          inicializarVistaStaff();
-        } else {
-          alert('Sin conexión: Ingresa con una cuenta autenticada previamente.');
-        }
+        alert('No se pudo conectar con el servidor. Intenta nuevamente.');
       }
     }
 
     function cerrarSesion() {
+      fetch('/api/auth/logout', { method: 'POST' }).catch(() => { });
       usuarioStaff = null;
       localStorage.removeItem('mb_staff_user');
       inicializarVistaStaff();
@@ -1216,9 +1211,20 @@
         return;
       }
 
+      let ultimaFecha = '';
       tbody.innerHTML = items.map(v => {
+        const fechaVenta = new Date(v.fechaCreacion);
+        const claveFecha = `${fechaVenta.getFullYear()}-${fechaVenta.getMonth()}-${fechaVenta.getDate()}`;
+        const encabezadoFecha = claveFecha !== ultimaFecha
+          ? `<tr class="bg-slate-100/80 border-y border-slate-200">
+              <td colspan="8" class="px-3.5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-600">
+                <i class="fa-regular fa-calendar mr-1.5 text-brand-magenta"></i>${fechaVenta.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </td>
+            </tr>`
+          : '';
+        ultimaFecha = claveFecha;
         const fecha = new Date(v.fechaCreacion).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
-        return `
+        return encabezadoFecha + `
           <tr class="hover:bg-amber-50/40 transition ${!v.activo ? 'opacity-50 bg-rose-50/30' : ''}">
             <td class="p-3.5 font-mono font-bold text-slate-900">${v.numeroTicket}</td>
             <td class="p-3.5 text-xs text-slate-500 font-medium">${fecha}</td>
