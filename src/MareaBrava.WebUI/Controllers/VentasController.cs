@@ -36,6 +36,9 @@ public class VentasController : ControllerBase
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var usuarioId))
             return Unauthorized();
 
+        if (!await _context.CortesCaja.AnyAsync(c => c.Abierto))
+            return BadRequest(new { error = "No existe un turno de caja abierto." });
+
         var prendaIds = dto.Lineas.Select(l => l.PrendaId).ToList();
         var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
 
@@ -98,6 +101,9 @@ public class VentasController : ControllerBase
             return Ok(new { procesadas = 0, mensaje = "No hay ventas para sincronizar." });
 
         int procesadas = 0;
+
+        if (!await _context.CortesCaja.AnyAsync(c => c.Abierto))
+            return BadRequest(new { error = "No existe un turno de caja abierto." });
 
         foreach (var vOff in ventasOffline)
         {

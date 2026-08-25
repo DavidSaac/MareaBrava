@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MareaBrava.Domain.Entities;
@@ -64,13 +65,16 @@ public class CortesController : ControllerBase
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador,Cajero")]
     public async Task<IActionResult> AbrirTurno([FromBody] AbrirTurnoRequest req)
     {
+        if (req.FondoInicial < 0)
+            return BadRequest(new { error = "El fondo inicial no puede ser negativo." });
+
         var existeAbierto = await _context.CortesCaja.AnyAsync(c => c.Abierto);
         if (existeAbierto)
             return BadRequest(new { error = "Ya existe un turno de caja abierto en el sistema." });
 
         var nuevoCorte = new CorteCaja
         {
-            UsuarioId = req.UsuarioId,
+            UsuarioId = ObtenerUsuarioId(),
             FondoInicial = req.FondoInicial,
             FechaApertura = DateTime.UtcNow,
             Abierto = true
@@ -87,7 +91,11 @@ public class CortesController : ControllerBase
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador,Cajero")]
     public async Task<IActionResult> CerrarTurno([FromBody] CerrarTurnoRequest req)
     {
-        var corte = await _context.CortesCaja.FirstOrDefaultAsync(c => c.Id == req.CorteId && c.Abierto);
+        var usuarioId = ObtenerUsuarioId();
+        var puedeCerrarCualquierCorte = User.IsInRole(RolUsuario.Administrador.ToString());
+        var corte = await _context.CortesCaja.FirstOrDefaultAsync(c =>
+            c.Id == req.CorteId && c.Abierto &&
+            (puedeCerrarCualquierCorte || c.UsuarioId == usuarioId));
         if (corte == null)
             return BadRequest(new { error = "No se encontró un turno activo con este identificador." });
 
@@ -110,6 +118,14 @@ public class CortesController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(corte);
+    }
+
+    private int ObtenerUsuarioId()
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var usuarioId))
+            throw new InvalidOperationException("La sesión no contiene un usuario válido.");
+
+        return usuarioId;
     }
 
     // Historial de Cortes (para la Dueña)

@@ -13,6 +13,7 @@ namespace MareaBrava.WebUI.Controllers;
 [Microsoft.AspNetCore.Authorization.Authorize]
 public class PrendasController : ControllerBase
 {
+    private const long MaxImageBytes = 5 * 1024 * 1024;
     private readonly MareaBravaDbContext _context;
     private readonly IWebHostEnvironment _env;
 
@@ -80,11 +81,13 @@ public class PrendasController : ControllerBase
         string? rutaImagen = null;
         if (dto.Imagen != null && dto.Imagen.Length > 0)
         {
+            if (!TryGetImageExtension(dto.Imagen, out var extension))
+                return BadRequest(new { error = "La imagen debe ser JPG, PNG o WEBP y no superar 5 MB." });
+
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-            var extension = Path.GetExtension(dto.Imagen.FileName);
-            var nombreArchivo = $"{dto.Sku}_{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
+            var nombreArchivo = $"{Guid.NewGuid():N}{extension}";
             var rutaFisica = Path.Combine(uploadsFolder, nombreArchivo);
 
             using (var stream = new FileStream(rutaFisica, FileMode.Create))
@@ -137,11 +140,13 @@ public class PrendasController : ControllerBase
 
         if (dto.Imagen != null && dto.Imagen.Length > 0)
         {
+            if (!TryGetImageExtension(dto.Imagen, out var extension))
+                return BadRequest(new { error = "La imagen debe ser JPG, PNG o WEBP y no superar 5 MB." });
+
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-            var extension = Path.GetExtension(dto.Imagen.FileName);
-            var nombreArchivo = $"{dto.Sku}_{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
+            var nombreArchivo = $"{Guid.NewGuid():N}{extension}";
             var rutaFisica = Path.Combine(uploadsFolder, nombreArchivo);
 
             using (var stream = new FileStream(rutaFisica, FileMode.Create))
@@ -154,6 +159,17 @@ public class PrendasController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok(prenda);
+    }
+
+    private static bool TryGetImageExtension(IFormFile image, out string extension)
+    {
+        extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+
+        return image.Length <= MaxImageBytes
+            && allowedExtensions.Contains(extension)
+            && allowedContentTypes.Contains(image.ContentType, StringComparer.OrdinalIgnoreCase);
     }
 
     [HttpPatch("{id}/stock")]
