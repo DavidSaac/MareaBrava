@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marea Brava | Bikinis & Pareos</title>
+  <link rel="manifest" href="/manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -34,314 +35,206 @@
   </script>
   <style>
     body { background-color: #FAF6F0; color: #1E1B18; }
-    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 6px; }
   </style>
 </head>
-<body class="font-sans min-h-screen flex flex-col antialiased text-base">
+<body class="font-sans min-h-screen flex flex-col antialiased">
 
   <!-- ================= TOPBAR ================= -->
-  <header class="bg-[#FAF6F0] border-b border-brand-borderCream sticky top-0 z-40 shadow-sm">
-    <div class="w-full px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
-      
-      <!-- Estado de Sesión -->
-      <div class="flex items-center space-x-3 text-slate-700 w-full md:w-auto justify-between md:justify-start text-sm">
-        <span class="font-bold bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">🇲🇽 MXN</span>
-        <span class="text-slate-300">|</span>
-        
-        <div id="box-usuario-info" class="flex items-center gap-2 font-bold text-slate-800">
-          <i class="fa-solid fa-circle-user text-brand-magenta text-lg"></i>
-          <span id="label-usuario">Catálogo para Clientas</span>
-        </div>
-
-        <button onclick="toggleAuthAction()" id="btn-auth-action" class="text-xs font-bold text-brand-magenta hover:underline ml-2">
-          [Acceso Personal]
-        </button>
-      </div>
-
-      <!-- Logotipo de Marca -->
-      <div class="text-center">
-        <div class="text-brand-magenta text-[11px] font-black tracking-[0.3em] flex items-center justify-center gap-1">
-          <span>☼</span><span>MAREA BRAVA</span><span>☼</span>
-        </div>
-        <h1 class="font-serif text-3xl md:text-4xl font-black tracking-tight text-brand-magenta leading-none py-0.5">MAREA BRAVA</h1>
-        <p class="text-[11px] tracking-[0.25em] font-bold text-brand-magenta uppercase">— Bikinis y Pareos —</p>
-      </div>
-
-      <!-- Navegación según Rol (Clientas solo ven Tienda) -->
-      <div class="flex items-center gap-2.5 w-full md:w-auto justify-center">
-        <button onclick="cambiarVista('tienda')" id="btn-vista-tienda" class="bg-brand-magenta text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition">
-          <i class="fa-solid fa-store mr-1.5"></i>Tienda
-        </button>
-        <button onclick="cambiarVista('pos')" id="btn-vista-pos" class="hidden bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-5 py-2 rounded-full text-sm font-bold transition">
-          <i class="fa-solid fa-cash-register mr-1.5"></i>Caja POS
-        </button>
-        <button onclick="cambiarVista('admin')" id="btn-vista-admin" class="hidden bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-5 py-2 rounded-full text-sm font-bold transition">
-          <i class="fa-solid fa-boxes-stacked mr-1.5"></i>Admin Inventario
-        </button>
-      </div>
+  <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-brand-borderCream px-4 sm:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="text-brand-magenta text-xs font-black tracking-widest hidden sm:block">☼</div>
+      <h1 class="font-serif font-black text-2xl sm:text-3xl text-brand-magenta tracking-wider">MAREA BRAVA</h1>
     </div>
+
+    <!-- Pestañas Principales -->
+    <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-bold">
+      <button onclick="cambiarVistaPublica('catalogo')" id="btn-tab-catalogo" class="px-4 py-2 rounded-xl bg-brand-magenta text-white font-black shadow-sm transition">
+        <i class="fa-solid fa-shirt mr-1.5"></i>Colección
+      </button>
+      <button onclick="cambiarVistaPublica('ubicacion')" id="btn-tab-ubicacion" class="px-4 py-2 rounded-xl text-slate-700 hover:text-brand-magenta transition">
+        <i class="fa-solid fa-location-dot mr-1.5 text-brand-magenta"></i>Info y Ubicación
+      </button>
+    </div>
+
+    <a href="https://wa.me/527774773873?text=Hola%20Marea%20Brava,%20deseo%20información%20del%20catálogo" target="_blank" class="bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 px-4 py-2 rounded-full text-xs font-extrabold flex items-center gap-2 transition shadow-sm">
+      <i class="fa-brands fa-whatsapp text-base text-emerald-600"></i>
+      <span>WhatsApp</span>
+    </a>
   </header>
 
 
-  <!-- ================= VISTA 1: TIENDA ONLINE (CLIENTAS) ================= -->
-  <main id="vista-tienda" class="w-full px-6 py-8 flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
-    <aside class="space-y-6 bg-brand-cardBg/70 p-6 rounded-3xl border border-brand-borderCream h-fit shadow-sm">
-      <div>
-        <label class="block text-xs font-black uppercase text-slate-600 mb-2">Buscador</label>
-        <div class="relative">
-          <input type="text" id="filtro-busqueda-tienda" oninput="filtrarTienda()" placeholder="Buscar por modelo o SKU..." class="w-full bg-white border border-brand-borderCream rounded-xl py-3 pl-4 pr-10 text-sm focus:outline-brand-magenta font-medium shadow-inner" />
-          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400 text-base"></i>
+  <!-- ================= VISTA 1: CATÁLOGO DE CLIENTAS ================= -->
+  <div id="vista-catalogo" class="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- BARRA LATERAL DE FILTROS -->
+    <aside class="lg:col-span-3 space-y-6">
+      
+      <!-- Filtro Categoría -->
+      <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
+        <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
+        <div class="flex flex-col gap-1.5 text-xs font-bold" id="lista-categorias">
+          <button onclick="filtrarCategoria(0)" id="cat-0" class="py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition">✨ Toda la Colección</button>
+          <button onclick="filtrarCategoria(2)" id="cat-2" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">👙 Bikinis (2 Piezas)</button>
+          <button onclick="filtrarCategoria(1)" id="cat-1" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🩱 Trajes Completos (1 Pieza)</button>
+          <button onclick="filtrarCategoria(3)" id="cat-3" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">👚 Tops Individuales</button>
+          <button onclick="filtrarCategoria(4)" id="cat-4" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🩲 Bottoms Individuales</button>
+          <button onclick="filtrarCategoria(5)" id="cat-5" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🧣 Pareos & Accesorios</button>
         </div>
       </div>
 
-      <div class="border-t border-brand-borderCream pt-5">
-        <h4 class="text-xs font-black uppercase text-slate-600 mb-3">Colecciones</h4>
-        <div class="grid grid-cols-2 gap-3 text-center text-xs font-black text-brand-magenta">
-          <div class="bg-white p-3 rounded-2xl border border-brand-borderCream shadow-sm">
-            <img src="https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400" class="h-28 w-full object-cover rounded-xl mb-2" />
-            <span>BIKINIS</span>
-          </div>
-          <div class="bg-white p-3 rounded-2xl border border-brand-borderCream shadow-sm">
-            <img src="https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=400" class="h-28 w-full object-cover rounded-xl mb-2" />
-            <span>PAREOS</span>
-          </div>
+      <!-- Filtro Talla -->
+      <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
+        <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Filtrar por Talla</h3>
+        <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+          <button onclick="filtrarTalla(0)" id="talla-0" class="py-2 rounded-xl border bg-brand-magenta text-white font-black">Todas</button>
+          <button onclick="filtrarTalla(1)" id="talla-1" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">XS</button>
+          <button onclick="filtrarTalla(2)" id="talla-2" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">S</button>
+          <button onclick="filtrarTalla(3)" id="talla-3" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">M</button>
+          <button onclick="filtrarTalla(4)" id="talla-4" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">L</button>
+          <button onclick="filtrarTalla(5)" id="talla-5" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">XL</button>
+          <button onclick="filtrarTalla(6)" id="talla-6" class="col-span-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">Unitalla</button>
         </div>
       </div>
+
+      <!-- Checkbox para Ocultar Agotados -->
+      <div class="bg-white rounded-3xl p-4 border border-brand-borderCream shadow-sm flex items-center justify-between text-xs font-bold text-slate-700">
+        <span>Ocultar agotadas</span>
+        <input type="checkbox" id="check-solo-disponibles" onchange="renderizarCatalogo()" checked class="w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" />
+      </div>
+
     </aside>
 
-    <section class="lg:col-span-3">
-      <div id="grid-tienda" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
-    </section>
-  </main>
-
-
-  <!-- ================= VISTA 2: ADMIN INVENTARIO (DUEÑA) ================= -->
-  <main id="vista-admin" class="hidden w-full px-6 py-8 flex-1 space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-brand-borderCream shadow-sm">
-      <div>
-        <h2 class="text-3xl font-serif font-black text-slate-900">Gestión de Inventario</h2>
-        <p class="text-sm text-slate-500 font-medium">Edita existencias, ajusta precios o agrega nuevos modelos</p>
-      </div>
-      <button onclick="abrirModalPrenda()" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-6 py-3.5 rounded-2xl text-sm font-extrabold shadow-md flex items-center gap-2 transition active:scale-95">
-        <i class="fa-solid fa-plus text-base"></i>
-        <span>Subir Nuevo Modelo</span>
-      </button>
-    </div>
-
-    <!-- Tabla con edición y ajuste de stock -->
-    <div class="bg-white rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm border-collapse min-w-[850px]">
-          <thead>
-            <tr class="bg-[#F4ECE1] text-slate-800 font-black border-b border-brand-borderCream text-xs uppercase tracking-wider">
-              <th class="p-4 text-center">Foto</th>
-              <th class="p-4">Prenda / Modelo</th>
-              <th class="p-4 text-center">Talla</th>
-              <th class="p-4">Color</th>
-              <th class="p-4">SKU</th>
-              <th class="p-4 text-right">Costo</th>
-              <th class="p-4 text-right">P. Venta</th>
-              <th class="p-4 text-center">Ajuste de Stock</th>
-              <th class="p-4 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-admin-prendas" class="divide-y divide-brand-borderCream/60"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-
-  <!-- ================= VISTA 3: PUNTO DE VENTA POS (CAJERA / DUEÑA) ================= -->
-  <main id="vista-pos" class="hidden w-full px-6 py-8 flex-1 space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-7 xl:col-span-8 space-y-4">
-        <div class="relative">
-          <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Buscar prenda o escanear código..." class="w-full bg-white border-2 border-brand-borderCream rounded-2xl p-4 pl-5 pr-12 text-base font-semibold focus:outline-brand-magenta shadow-sm" />
-          <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-slate-400 text-lg"></i>
-        </div>
-        <div id="grid-pos-items" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[640px] overflow-y-auto custom-scroll pr-2"></div>
-      </div>
-
-      <div class="lg:col-span-5 xl:col-span-4">
-        <div class="bg-white rounded-3xl border-2 border-brand-borderCream p-6 shadow-xl space-y-6 sticky top-24">
-          <h3 class="font-serif font-bold text-2xl text-slate-900 border-b border-brand-borderCream pb-3">Ticket de Cobro</h3>
-          <div id="pos-ticket-lineas" class="py-3 space-y-3 min-h-[160px] max-h-[260px] overflow-y-auto custom-scroll text-sm"></div>
-
-          <div class="border-t-2 border-dashed border-brand-borderCream pt-4 space-y-2 font-bold text-slate-700 text-sm">
-            <div class="flex justify-between">
-              <span>Subtotal:</span>
-              <span id="pos-subtotal">$0.00 MXN</span>
-            </div>
-            <div class="flex justify-between text-2xl font-black text-slate-900 pt-2 border-t border-slate-200">
-              <span>TOTAL:</span>
-              <span id="pos-total" class="text-brand-magenta font-black">$0.00 MXN</span>
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <div class="grid grid-cols-3 gap-2 text-xs font-bold">
-              <button onclick="seleccionarMetodo(1)" id="btn-met-1" class="py-2.5 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl shadow-sm">Efectivo</button>
-              <button onclick="seleccionarMetodo(2)" id="btn-met-2" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Tarjeta</button>
-              <button onclick="seleccionarMetodo(3)" id="btn-met-3" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Transf.</button>
-            </div>
-
-            <div id="caja-efectivo" class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 space-y-2 text-sm">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-700">Monto Recibido ($):</span>
-                <input type="number" id="pos-efectivo-recibido" oninput="calcularCambio()" placeholder="$0.00" class="w-36 bg-white border border-slate-300 rounded-lg p-2 text-right font-black text-slate-900 text-base shadow-inner focus:outline-brand-magenta" />
-              </div>
-              <div class="flex justify-between items-center pt-2 border-t border-amber-200/60 font-black">
-                <span class="text-slate-700">Cambio:</span>
-                <span id="pos-cambio" class="font-mono text-xl text-emerald-700">$0.00 MXN</span>
-              </div>
-            </div>
-          </div>
-
-          <button onclick="cobrarTicket()" id="btn-cobrar-pos" disabled class="w-full bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-300 text-white font-black py-4 rounded-2xl text-base shadow-lg transition active:scale-95">
-            COBRAR E IMPRIMIR TICKET
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-
-  <!-- ================= MODAL LOGIN ================= -->
-  <div id="modal-login" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-md w-full p-8 space-y-6 shadow-2xl border border-brand-borderCream">
-      <div class="text-center space-y-2">
-        <h3 class="font-serif font-black text-3xl text-brand-magenta">Acceso al Sistema</h3>
-        <p class="text-xs text-slate-500 font-medium">Ingresa con tus credenciales de Dueña o Cajera</p>
-      </div>
-
-      <form id="form-login" onsubmit="ejecutarLogin(event)" class="space-y-4 text-sm font-semibold">
-        <div>
-          <label class="block mb-1 text-slate-700">Correo Electrónico</label>
-          <input type="email" id="login-email" required placeholder="correo@mareabrava.com" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:outline-brand-magenta" />
-        </div>
-        <div>
-          <label class="block mb-1 text-slate-700">Contraseña</label>
-          <input type="password" id="login-password" required placeholder="••••••••" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:outline-brand-magenta" />
-        </div>
-
-        <button type="submit" class="w-full bg-brand-magenta hover:bg-brand-magentaHover text-white font-black py-3.5 rounded-xl shadow-md transition active:scale-95">
-          Iniciar Sesión
-        </button>
-      </form>
-
-      <div class="border-t pt-4 space-y-2 text-xs">
-        <p class="text-center font-bold text-slate-400 uppercase tracking-wider">Accesos Demo:</p>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="autocompletarLogin('admin@mareabrava.com', 'Admin123!')" class="p-2.5 rounded-xl bg-pink-50 text-brand-magenta border border-pink-200 font-bold hover:bg-pink-100">
-            👑 Dueña (Admin)
-          </button>
-          <button onclick="autocompletarLogin('sofia@mareabrava.com', 'Cajero123!')" class="p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100">
-            🏷️ Cajera (POS)
-          </button>
+    <!-- GRID DE PRENDAS -->
+    <main class="lg:col-span-9 space-y-4">
+      <div class="flex justify-between items-center bg-white px-5 py-3 rounded-2xl border border-brand-borderCream shadow-sm text-xs font-bold text-slate-600">
+        <span id="conteo-catalogo">Cargando modelos...</span>
+        <div class="flex items-center gap-2">
+          <span>Ordenar:</span>
+          <select id="orden-catalogo" onchange="renderizarCatalogo()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:outline-brand-magenta text-xs font-bold">
+            <option value="recientes">Novedades</option>
+            <option value="menor-precio">Menor Precio</option>
+            <option value="mayor-precio">Mayor Precio</option>
+          </select>
         </div>
       </div>
 
-      <button onclick="cerrarModalLogin()" class="w-full text-center text-xs text-slate-400 font-bold hover:underline">
-        Regresar al catálogo público
-      </button>
-    </div>
+      <div id="grid-catalogo" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+    </main>
+
   </div>
 
 
-  <!-- ================= MODAL CREAR / EDITAR PRENDA ================= -->
-  <div id="modal-prenda" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-brand-borderCream max-h-[92vh] overflow-y-auto custom-scroll">
-      <div class="flex justify-between items-center border-b pb-4">
-        <div>
-          <h3 id="modal-prenda-titulo" class="font-serif font-black text-2xl text-brand-magenta">Subir Nuevo Modelo</h3>
-          <p class="text-xs text-slate-500 font-medium">Gestión de datos de catálogo e inventario</p>
-        </div>
-        <button onclick="cerrarModalPrenda()" class="text-slate-400 hover:text-slate-700 p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
-      </div>
-
-      <form id="form-prenda" onsubmit="guardarPrenda(event)" class="space-y-4 text-sm font-semibold text-slate-700">
-        <input type="hidden" id="m-id" value="" />
-
-        <div>
-          <label class="block mb-1.5 font-bold">Nombre del Modelo</label>
-          <input type="text" id="m-nombre" required placeholder="Ej: Bikini Triángulo Coral" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:outline-brand-magenta" />
+  <!-- ================= VISTA 2: INFO Y UBICACIÓN OFICIAL ================= -->
+  <div id="vista-ubicacion" class="hidden max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 space-y-8">
+    
+    <!-- Hero / Tarjeta de la Boutique -->
+    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-brand-borderCream shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      
+      <!-- Columna Información Oficial -->
+      <div class="lg:col-span-6 space-y-5">
+        <div class="inline-flex items-center gap-2 bg-pink-50 text-brand-magenta border border-pink-200 px-3.5 py-1 rounded-full text-xs font-black tracking-wide">
+          <span>☼</span><span>TIENDA FÍSICA & SHOWROOM</span>
         </div>
         
-        <div class="bg-pink-50/50 p-4 rounded-2xl border-2 border-dashed border-brand-magenta/40">
-          <label class="block mb-1.5 font-black text-brand-magenta"><i class="fa-solid fa-camera mr-1.5"></i>Foto de la Prenda (Opcional al editar)</label>
-          <input type="file" id="m-imagen" accept="image/png, image/jpeg, image/webp" class="w-full text-xs font-semibold file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-magenta file:text-white hover:file:bg-brand-magentaHover cursor-pointer" />
-        </div>
+        <h2 class="font-serif font-black text-3xl sm:text-4xl text-slate-900 leading-tight">
+          Plaza Cuauhtémoc
+        </h2>
+        
+        <p class="text-sm text-slate-600 font-medium leading-relaxed">
+          Ven a conocer todos nuestros modelos en persona, checar la calidad de las telas y probarte tus prendas favoritas en nuestros probadores.
+        </p>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block mb-1 font-bold">Código SKU</label>
-            <input type="text" id="m-sku" required placeholder="MB-800201" class="w-full border-2 border-slate-200 rounded-xl p-2.5 uppercase font-mono" />
+        <div class="space-y-3.5 pt-2 text-sm font-semibold text-slate-800">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-pink-50 text-brand-magenta flex items-center justify-center shrink-0 border border-pink-200 text-base">
+              <i class="fa-solid fa-map-pin"></i>
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">Dirección</p>
+              <p class="text-xs text-slate-600 font-medium">Av. Cuauhtémoc #174, Plaza Cuauhtémoc, Cuernavaca, Morelos.</p>
+              <p class="text-[11px] text-brand-magenta font-bold mt-0.5">A 1 cuadra de La Luna, pasando el Aurrera, frente al OXXO de la curva.</p>
+            </div>
           </div>
-          <div>
-            <label class="block mb-1 font-bold">Color</label>
-            <input type="text" id="m-color" required placeholder="Coral" class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
-          </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block mb-1 font-bold">Tipo de Pieza</label>
-            <select id="m-tipo" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
-              <option value="2">Dos Piezas (Bikini)</option>
-              <option value="1">Una Pieza (Entero)</option>
-              <option value="3">Top Individual</option>
-              <option value="4">Bottom Individual</option>
-              <option value="5">Accesorio / Pareo</option>
-            </select>
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-pink-50 text-brand-magenta flex items-center justify-center shrink-0 border border-pink-200 text-base">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">Horario de Atención</p>
+              <p class="text-xs text-slate-600 font-medium">Lunes a Sábado: <strong>11:00 AM – 6:00 PM</strong></p>
+              <p class="text-xs text-slate-400 font-medium">Domingo: Cerrado</p>
+            </div>
           </div>
-          <div>
-            <label class="block mb-1 font-bold">Talla</label>
-            <select id="m-talla" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
-              <option value="1">XS</option>
-              <option value="2">S</option>
-              <option value="3" selected>M</option>
-              <option value="4">L</option>
-              <option value="5">XL</option>
-              <option value="6">Unitalla (OS)</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block mb-1 font-bold">Precio Costo ($ MXN)</label>
-            <input type="number" id="m-costo" step="0.50" required value="250.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
-          </div>
-          <div>
-            <label class="block mb-1 font-bold">Precio Venta ($ MXN)</label>
-            <input type="number" id="m-precio" step="0.50" required value="599.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-black text-brand-magenta" />
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-pink-50 text-brand-magenta flex items-center justify-center shrink-0 border border-pink-200 text-base">
+              <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">Formas de Pago</p>
+              <p class="text-xs text-slate-600 font-medium">Efectivo, Tarjetas de Débito/Crédito y Transferencia SPEI</p>
+            </div>
           </div>
         </div>
 
-        <div>
-          <label class="block mb-1 font-bold">Stock Actual en Bodega</label>
-          <input type="number" id="m-stock" required min="0" value="12" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-bold" />
+        <div class="pt-3">
+          <a href="https://maps.app.goo.gl/HhyjGkvLZJQYvWri6" target="_blank" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-6 py-3.5 rounded-2xl text-xs font-black shadow-md transition inline-flex items-center gap-2 active:scale-95">
+            <i class="fa-solid fa-location-arrow text-sm"></i>
+            <span>Abrir en Google Maps</span>
+          </a>
         </div>
+      </div>
 
-        <div class="pt-4 flex justify-end gap-3 border-t">
-          <button type="button" onclick="cerrarModalPrenda()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl">Cancelar</button>
-          <button type="submit" class="px-6 py-2.5 bg-brand-magenta hover:bg-brand-magentaHover text-white font-black rounded-xl shadow-md">Guardar Cambios</button>
+      <!-- Columna Imagen Oficial del Croquis -->
+      <div class="lg:col-span-6 flex justify-center">
+        <div class="relative rounded-3xl overflow-hidden shadow-lg border-2 border-brand-borderCream max-w-md w-full bg-white">
+          <img src="/croquis.jpeg" alt="Ubicación Marea Brava Plaza Cuauhtémoc" class="w-full h-auto object-contain rounded-2xl" />
         </div>
-      </form>
+      </div>
+
     </div>
+
+    <!-- Mapa Interactivo Embebido -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-brand-borderCream shadow-sm space-y-4">
+      <div>
+        <h3 class="font-serif font-black text-2xl text-slate-900">Mapa de Navegación</h3>
+        <p class="text-xs text-slate-500 font-medium">Av. Cuauhtémoc 174, Cuernavaca, Mor.</p>
+      </div>
+
+      <div class="w-full h-[380px] rounded-2xl overflow-hidden border border-brand-borderCream shadow-inner">
+        <iframe 
+          title="Google Maps Marea Brava"
+          src="https://maps.google.com/maps?q=Av.+Cuauhtemoc+174,+Cuernavaca,+Morelos&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+          width="100%" 
+          height="100%" 
+          style="border:0;" 
+          allowfullscreen="" 
+          loading="lazy">
+        </iframe>
+      </div>
+    </div>
+
   </div>
+
+
+  <!-- ================= FOOTER PÚBLICO ================= -->
+  <footer class="mt-auto border-t border-brand-borderCream bg-white py-6 px-4 text-center text-xs text-slate-400 font-medium">
+    <div class="max-w-7xl mx-auto">
+      <p>© 2026 Marea Brava. Todos los derechos reservados.</p>
+    </div>
+  </footer>
 
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
-    let catalogo = [];
-    let ticketPOS = [];
-    let metodoPagoPOS = 1;
-    let usuarioSesion = JSON.parse(localStorage.getItem('mb_usuario')) || null;
+    let prendas = [];
+    let categoriaSeleccionada = 0;
+    let tallaSeleccionada = 0;
 
-    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'OS' };
+    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla' };
     const fotosDefault = [
       "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
       "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
@@ -352,483 +245,129 @@
       return `$${Number(monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
     }
 
-    function aplicarPermisosRol() {
-      const btnPOS = document.getElementById('btn-vista-pos');
-      const btnAdmin = document.getElementById('btn-vista-admin');
-      const labelUser = document.getElementById('label-usuario');
-      const btnAuth = document.getElementById('btn-auth-action');
+    function cambiarVistaPublica(vista) {
+      const vCat = document.getElementById('vista-catalogo');
+      const vUbi = document.getElementById('vista-ubicacion');
+      const btnCat = document.getElementById('btn-tab-catalogo');
+      const btnUbi = document.getElementById('btn-tab-ubicacion');
 
-      if (!usuarioSesion) {
-        btnPOS.classList.add('hidden');
-        btnAdmin.classList.add('hidden');
-        labelUser.innerText = "Catálogo para Clientas";
-        btnAuth.innerText = "[Acceso Personal]";
-        btnAuth.onclick = abrirModalLogin;
-        cambiarVista('tienda');
-      } else if (usuarioSesion.rol === 'Cajero') {
-        btnPOS.classList.remove('hidden');
-        btnAdmin.classList.add('hidden');
-        labelUser.innerHTML = `<i class="fa-solid fa-cash-register text-amber-700 mr-1"></i> ${usuarioSesion.nombreCompleto} (Cajera)`;
-        btnAuth.innerText = "[Cerrar Sesión]";
-        btnAuth.onclick = cerrarSesion;
-      } else if (usuarioSesion.rol === 'Admin') {
-        btnPOS.classList.remove('hidden');
-        btnAdmin.classList.remove('hidden');
-        labelUser.innerHTML = `<i class="fa-solid fa-crown text-pink-600 mr-1"></i> ${usuarioSesion.nombreCompleto} (Dueña)`;
-        btnAuth.innerText = "[Cerrar Sesión]";
-        btnAuth.onclick = cerrarSesion;
-      }
-    }
+      if (vista === 'catalogo') {
+        vCat.classList.remove('hidden');
+        vCat.classList.add('grid');
+        vUbi.classList.add('hidden');
 
-    function toggleAuthAction() {
-      if (usuarioSesion) {
-        cerrarSesion();
+        btnCat.className = "px-4 py-2 rounded-xl bg-brand-magenta text-white font-black shadow-sm transition";
+        btnUbi.className = "px-4 py-2 rounded-xl text-slate-700 hover:text-brand-magenta transition font-bold";
       } else {
-        abrirModalLogin();
+        vCat.classList.add('hidden');
+        vCat.classList.remove('grid');
+        vUbi.classList.remove('hidden');
+
+        btnUbi.className = "px-4 py-2 rounded-xl bg-brand-magenta text-white font-black shadow-sm transition";
+        btnCat.className = "px-4 py-2 rounded-xl text-slate-700 hover:text-brand-magenta transition font-bold";
       }
     }
 
-    function abrirModalLogin() {
-      document.getElementById('modal-login').classList.remove('hidden');
-      document.getElementById('modal-login').classList.add('flex');
-    }
-
-    function cerrarModalLogin() {
-      document.getElementById('modal-login').classList.add('hidden');
-      document.getElementById('modal-login').classList.remove('flex');
-    }
-
-    function autocompletarLogin(email, pass) {
-      document.getElementById('login-email').value = email;
-      document.getElementById('login-password').value = pass;
-    }
-
-    async function ejecutarLogin(e) {
-      e.preventDefault();
-      const correo = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ correo, password })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          usuarioSesion = data;
-          localStorage.setItem('mb_usuario', JSON.stringify(data));
-          cerrarModalLogin();
-          aplicarPermisosRol();
-          
-          if (data.rol === 'Cajero') cambiarVista('pos');
-          if (data.rol === 'Admin') cambiarVista('admin');
-        } else {
-          const err = await res.json();
-          alert('Error: ' + (err.error || 'Credenciales incorrectas'));
-        }
-      } catch (err) {
-        alert('Error al comunicar con el servicio de autenticación.');
-      }
-    }
-
-    function cerrarSesion() {
-      usuarioSesion = null;
-      localStorage.removeItem('mb_usuario');
-      aplicarPermisosRol();
-    }
-
-    async function cargarDatos() {
+    async function cargarCatalogo() {
       try {
         const res = await fetch('/api/prendas');
-        catalogo = await res.json();
-        renderTienda(catalogo);
-        renderAdmin(catalogo);
-        renderPOS(catalogo);
+        prendas = await res.json();
       } catch (e) {
-        console.error("Error al cargar prendas:", e);
+        console.error("Error al cargar prendas", e);
       }
+      renderizarCatalogo();
     }
 
-    function cambiarVista(vista) {
-      document.getElementById('vista-tienda').classList.toggle('hidden', vista !== 'tienda');
-      document.getElementById('vista-admin').classList.toggle('hidden', vista !== 'admin');
-      document.getElementById('vista-pos').classList.toggle('hidden', vista !== 'pos');
-
-      ['tienda', 'pos', 'admin'].forEach(v => {
-        const btn = document.getElementById(`btn-vista-${v}`);
-        if (!btn) return;
-        if (v === vista) {
-          btn.className = "bg-brand-magenta text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition";
-        } else {
-          btn.className = "bg-transparent hover:bg-brand-cardBg text-brand-magenta border-2 border-brand-magenta px-5 py-2 rounded-full text-sm font-bold transition";
+    function filtrarCategoria(cat) {
+      categoriaSeleccionada = cat;
+      [0, 1, 2, 3, 4, 5].forEach(c => {
+        const btn = document.getElementById(`cat-${c}`);
+        if (btn) {
+          btn.className = c === cat 
+            ? "py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition"
+            : "py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition font-bold";
         }
       });
+      renderizarCatalogo();
     }
 
-    function renderTienda(items) {
-      const cont = document.getElementById('grid-tienda');
-      if (!items.length) {
-        cont.innerHTML = '<p class="col-span-3 text-center text-slate-400 py-16 text-base font-semibold">No hay modelos activos.</p>';
-        return;
-      }
-      cont.innerHTML = items.map((p, idx) => `
-        <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-          <div>
-            <div class="overflow-hidden rounded-2xl bg-slate-100 mb-4 h-72 sm:h-80 flex items-center justify-center relative">
-              <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="h-full w-full object-cover group-hover:scale-105 transition duration-500" />
-              <span class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black text-brand-magenta shadow-sm">
-                Talla ${tallasMap[p.talla] || 'M'}
-              </span>
-            </div>
-            <h3 class="font-serif font-black text-lg text-slate-900 uppercase tracking-wide leading-tight">${p.nombre}</h3>
-            <p class="text-xs font-mono text-slate-400 mt-1 mb-2">SKU: ${p.sku} • Color: ${p.color}</p>
-          </div>
-          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Precio</span>
-              <span class="font-black text-2xl text-slate-900">${formatoMXN(p.precioVenta)}</span>
-            </div>
-            <button onclick="agregarAlPOSDirecto(${p.id})" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition shadow-md flex items-center gap-1.5 active:scale-95">
-              <i class="fa-solid fa-cart-shopping"></i> Comprar
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderAdmin(items) {
-      const tbody = document.getElementById('tabla-admin-prendas');
-      if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400 font-semibold">No hay modelos registrados.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = items.map((p, idx) => `
-        <tr class="hover:bg-amber-50/40 transition">
-          <td class="p-4 text-center">
-            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-14 h-16 object-cover rounded-xl mx-auto border shadow-sm" />
-          </td>
-          <td class="p-4 font-bold text-slate-900 text-base">${p.nombre}</td>
-          <td class="p-4 text-center"><span class="px-2.5 py-1 bg-slate-100 rounded-md font-extrabold text-xs text-slate-700">${tallasMap[p.talla] || 'M'}</span></td>
-          <td class="p-4 font-medium text-slate-700">${p.color}</td>
-          <td class="p-4 font-mono font-bold text-slate-800">${p.sku}</td>
-          <td class="p-4 text-right text-slate-500 font-semibold">${formatoMXN(p.precioCosto)}</td>
-          <td class="p-4 text-right font-black text-slate-900 text-base">${formatoMXN(p.precioVenta)}</td>
-          
-          <!-- Ajuste Rápido de Stock (+ y -) -->
-          <td class="p-4 text-center">
-            <div class="inline-flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button onclick="ajustarStockRapido(${p.id}, -1)" class="w-7 h-7 bg-white hover:bg-slate-200 rounded-lg font-black text-slate-700 shadow-sm transition">-</button>
-              <span class="font-black text-xs px-2 ${p.stockActual > 5 ? 'text-emerald-700' : (p.stockActual > 0 ? 'text-amber-700' : 'text-rose-700')}">
-                ${p.stockActual} pzas
-              </span>
-              <button onclick="ajustarStockRapido(${p.id}, 1)" class="w-7 h-7 bg-white hover:bg-slate-200 rounded-lg font-black text-slate-700 shadow-sm transition">+</button>
-            </div>
-          </td>
-
-          <!-- Acciones: Editar y Eliminar -->
-          <td class="p-4 text-center">
-            <div class="flex items-center justify-center gap-1.5">
-              <button onclick="abrirModalEditar(${p.id})" title="Editar prenda completa" class="bg-amber-100 hover:bg-amber-200 text-amber-900 p-2.5 rounded-xl transition">
-                <i class="fa-solid fa-pen text-sm"></i>
-              </button>
-              <button onclick="eliminarPrenda(${p.id})" title="Dar de baja" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 p-2.5 rounded-xl transition">
-                <i class="fa-solid fa-trash-can text-sm"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    async function ajustarStockRapido(id, delta) {
-      try {
-        const res = await fetch(`/api/prendas/${id}/stock`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cantidad: delta })
-        });
-
-        if (res.ok) {
-          cargarDatos();
-        } else {
-          const err = await res.json();
-          alert('Error: ' + (err.error || 'No se pudo ajustar el stock.'));
+    function filtrarTalla(talla) {
+      tallaSeleccionada = talla;
+      [0, 1, 2, 3, 4, 5, 6].forEach(t => {
+        const btn = document.getElementById(`talla-${t}`);
+        if (btn) {
+          btn.className = t === talla
+            ? (t === 6 ? "col-span-3 " : "") + "py-2 rounded-xl border bg-brand-magenta text-white font-black shadow-sm"
+            : (t === 6 ? "col-span-3 " : "") + "py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta font-bold";
         }
-      } catch (e) {
-        alert('Error al conectar con el servidor.');
-      }
+      });
+      renderizarCatalogo();
     }
 
-    function abrirModalPrenda() {
-      document.getElementById('m-id').value = '';
-      document.getElementById('form-prenda').reset();
-      document.getElementById('modal-prenda-titulo').innerText = 'Subir Nuevo Modelo';
-      document.getElementById('modal-prenda').classList.remove('hidden');
-      document.getElementById('modal-prenda').classList.add('flex');
-    }
+    function renderizarCatalogo() {
+      const soloDisponibles = document.getElementById('check-solo-disponibles').checked;
+      const orden = document.getElementById('orden-catalogo').value;
 
-    function abrirModalEditar(id) {
-      const p = catalogo.find(item => item.id === id);
-      if (!p) return;
+      let filtradas = prendas.filter(p => {
+        const coincideCat = categoriaSeleccionada === 0 || p.tipoPieza === categoriaSeleccionada;
+        const coincideTalla = tallaSeleccionada === 0 || p.talla === tallaSeleccionada;
+        const coincideStock = !soloDisponibles || p.stockActual > 0;
+        return coincideCat && coincideTalla && coincideStock;
+      });
 
-      document.getElementById('m-id').value = p.id;
-      document.getElementById('m-nombre').value = p.nombre;
-      document.getElementById('m-sku').value = p.sku;
-      document.getElementById('m-color').value = p.color;
-      document.getElementById('m-tipo').value = p.tipoPieza;
-      document.getElementById('m-talla').value = p.talla;
-      document.getElementById('m-costo').value = p.precioCosto;
-      document.getElementById('m-precio').value = p.precioVenta;
-      document.getElementById('m-stock').value = p.stockActual;
+      if (orden === 'menor-precio') filtradas.sort((a, b) => a.precioVenta - b.precioVenta);
+      if (orden === 'mayor-precio') filtradas.sort((a, b) => b.precioVenta - a.precioVenta);
 
-      document.getElementById('modal-prenda-titulo').innerText = 'Editar Modelo #' + p.id;
-      document.getElementById('modal-prenda').classList.remove('hidden');
-      document.getElementById('modal-prenda').classList.add('flex');
-    }
+      document.getElementById('conteo-catalogo').innerText = `Mostrando ${filtradas.length} prenda(s)`;
 
-    function cerrarModalPrenda() {
-      document.getElementById('modal-prenda').classList.add('hidden');
-      document.getElementById('modal-prenda').classList.remove('flex');
-    }
-
-    async function guardarPrenda(e) {
-      e.preventDefault();
-
-      const id = document.getElementById('m-id').value;
-      const isEdit = id !== '';
-
-      const formData = new FormData();
-      formData.append('sku', document.getElementById('m-sku').value);
-      formData.append('nombre', document.getElementById('m-nombre').value);
-      formData.append('tipoPieza', document.getElementById('m-tipo').value);
-      formData.append('talla', document.getElementById('m-talla').value);
-      formData.append('color', document.getElementById('m-color').value);
-      formData.append('stockActual', document.getElementById('m-stock').value);
-      formData.append('stockMinimo', 3);
-      formData.append('precioCosto', document.getElementById('m-costo').value);
-      formData.append('precioVenta', document.getElementById('m-precio').value);
-
-      const archivoFoto = document.getElementById('m-imagen').files[0];
-      if (archivoFoto) {
-        formData.append('imagen', archivoFoto);
-      }
-
-      try {
-        const url = isEdit ? `/api/prendas/${id}` : '/api/prendas';
-        const method = isEdit ? 'PUT' : 'POST';
-
-        const res = await fetch(url, { method, body: formData });
-
-        if (res.ok) {
-          cerrarModalPrenda();
-          document.getElementById('form-prenda').reset();
-          cargarDatos();
-          alert(isEdit ? '¡Modelo actualizado correctamente!' : '¡Modelo y fotografía guardados con éxito!');
-        } else {
-          const err = await res.json();
-          alert('Error: ' + (err.error || 'No se pudo guardar la prenda.'));
-        }
-      } catch (err) {
-        alert('Error de conexión con el servidor.');
-      }
-    }
-
-    function renderPOS(items) {
-      const grid = document.getElementById('grid-pos-items');
-      grid.innerHTML = items.map((p, idx) => `
-        <div class="bg-white p-4 rounded-2xl border border-brand-borderCream shadow-sm flex flex-col justify-between space-y-3">
-          <div class="flex gap-4 items-center">
-            <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-20 h-24 object-cover rounded-xl border shadow-sm shrink-0" />
-            <div class="min-w-0">
-              <h4 class="font-bold text-slate-900 text-base truncate leading-tight">${p.nombre}</h4>
-              <p class="text-xs text-slate-500 mt-0.5">Talla: <strong>${tallasMap[p.talla]}</strong> | ${p.color}</p>
-              <p class="font-black text-lg text-brand-magenta mt-1">${formatoMXN(p.precioVenta)}</p>
-              <p class="text-xs ${p.stockActual > 3 ? 'text-emerald-700' : 'text-amber-700'} font-bold">
-                ● Stock: ${p.stockActual} disponibles
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-            <div class="flex items-center border-2 border-slate-200 rounded-xl bg-slate-50">
-              <button onclick="modificarCantidadInput(${p.id}, -1)" class="px-3 py-1.5 text-slate-700 hover:bg-slate-200 font-black text-base">-</button>
-              <span id="cant-pos-${p.id}" class="px-3 text-sm font-black text-slate-900">1</span>
-              <button onclick="modificarCantidadInput(${p.id}, 1)" class="px-3 py-1.5 text-slate-700 hover:bg-slate-200 font-black text-base">+</button>
-            </div>
-            <button onclick="agregarAlTicketConCantidad(${p.id})" ${p.stockActual === 0 ? 'disabled' : ''} class="flex-1 bg-brand-magenta hover:bg-brand-magentaHover disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm active:scale-95">
-              + Agregar
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function modificarCantidadInput(id, delta) {
-      const el = document.getElementById(`cant-pos-${id}`);
-      let cant = parseInt(el.innerText) + delta;
-      if (cant < 1) cant = 1;
-      el.innerText = cant;
-    }
-
-    function agregarAlTicketConCantidad(prendaId) {
-      const cant = parseInt(document.getElementById(`cant-pos-${prendaId}`).innerText);
-      const prenda = catalogo.find(p => p.id === prendaId);
-      if (!prenda) return;
-
-      const item = ticketPOS.find(t => t.prendaId === prendaId);
-      if (item) {
-        if (item.cantidad + cant <= prenda.stockActual) {
-          item.cantidad += cant;
-        } else {
-          alert(`Stock insuficiente. Solo hay ${prenda.stockActual} disponibles.`);
-          return;
-        }
-      } else {
-        if (cant <= prenda.stockActual) {
-          ticketPOS.push({ prendaId: prenda.id, nombre: prenda.nombre, talla: tallasMap[prenda.talla], precio: prenda.precioVenta, cantidad: cant });
-        } else {
-          alert('Stock insuficiente.');
-          return;
-        }
-      }
-      renderTicket();
-    }
-
-    function agregarAlPOSDirecto(prendaId) {
-      if (!usuarioSesion) {
-        alert('Acceso exclusivo para cajera o dueña.');
-        abrirModalLogin();
+      const grid = document.getElementById('grid-catalogo');
+      if (!filtradas.length) {
+        grid.innerHTML = '<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-white rounded-3xl border border-brand-borderCream">No hay modelos disponibles con estos filtros.</div>';
         return;
       }
 
-      const prenda = catalogo.find(p => p.id === prendaId);
-      if (!prenda || prenda.stockActual <= 0) return;
-      
-      const item = ticketPOS.find(t => t.prendaId === prendaId);
-      if (item) {
-        if (item.cantidad < prenda.stockActual) item.cantidad++;
-      } else {
-        ticketPOS.push({ prendaId: prenda.id, nombre: prenda.nombre, talla: tallasMap[prenda.talla], precio: prenda.precioVenta, cantidad: 1 });
-      }
-      cambiarVista('pos');
-      renderTicket();
-    }
+      grid.innerHTML = filtradas.map((p, idx) => {
+        const agotado = p.stockActual <= 0;
+        const mensajeWa = encodeURIComponent(`¡Hola Marea Brava! Me interesa el modelo "${p.nombre}" en talla ${tallasMap[p.talla] || 'M'} (${p.color}) SKU: ${p.sku}. ¿Me podrían dar más detalles?`);
+        const linkWa = `https://wa.me/527774773873?text=${mensajeWa}`;
 
-    function renderTicket() {
-      const cont = document.getElementById('pos-ticket-lineas');
-      const subtotalEl = document.getElementById('pos-subtotal');
-      const totalEl = document.getElementById('pos-total');
-      const btnCobrar = document.getElementById('btn-cobrar-pos');
-
-      if (!ticketPOS.length) {
-        cont.innerHTML = '<p class="text-slate-400 text-center py-10 text-sm">Ticket vacío.</p>';
-        subtotalEl.innerText = '$0.00 MXN';
-        totalEl.innerText = '$0.00 MXN';
-        btnCobrar.disabled = true;
-        calcularCambio();
-        return;
-      }
-
-      let total = 0;
-      cont.innerHTML = ticketPOS.map((i, idx) => {
-        const sub = i.precio * i.cantidad;
-        total += sub;
         return `
-          <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
-            <div>
-              <p class="font-bold text-slate-900 text-sm">${i.cantidad}x ${i.nombre} (${i.talla})</p>
-              <p class="text-xs text-slate-400">${formatoMXN(i.precio)} c/u</p>
+          <div class="bg-white rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between ${agotado ? 'opacity-60' : ''}">
+            <div class="relative overflow-hidden group">
+              <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-full h-80 object-cover object-center group-hover:scale-105 transition duration-300" />
+              
+              <!-- Badge de Talla -->
+              <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-black px-2.5 py-1 rounded-xl shadow-sm border border-slate-200">
+                Talla: ${tallasMap[p.talla] || 'M'}
+              </span>
+
+              <!-- Badge SOLO si está Agotado -->
+              ${agotado ? '<span class="absolute top-3 right-3 bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-xl shadow-md uppercase tracking-wider">Agotado</span>' : ''}
             </div>
-            <span class="font-black text-slate-900 text-sm">${formatoMXN(sub)}</span>
+
+            <div class="p-5 space-y-3">
+              <div>
+                <h4 class="font-bold text-slate-900 text-base line-clamp-1">${p.nombre}</h4>
+                <p class="text-xs text-slate-500 font-medium">Color: <strong>${p.color}</strong></p>
+              </div>
+
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-xl font-black text-slate-900">${formatoMXN(p.precioVenta)}</span>
+
+                ${agotado 
+                  ? '<span class="bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-black cursor-not-allowed">Sin Stock</span>'
+                  : `<a href="${linkWa}" target="_blank" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition shadow-sm active:scale-95">
+                      <i class="fa-brands fa-whatsapp text-sm"></i>
+                      <span>Me interesa</span>
+                    </a>`}
+              </div>
+            </div>
           </div>
         `;
       }).join('');
-
-      subtotalEl.innerText = formatoMXN(total);
-      totalEl.innerText = formatoMXN(total);
-      btnCobrar.disabled = false;
-      calcularCambio();
     }
 
-    function seleccionarMetodo(met) {
-      metodoPagoPOS = met;
-      [1, 2, 3].forEach(m => {
-        const btn = document.getElementById(`btn-met-${m}`);
-        if (m === met) {
-          btn.className = 'py-2.5 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl shadow-sm font-bold';
-        } else {
-          btn.className = 'py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl font-bold';
-        }
-      });
-      document.getElementById('caja-efectivo').style.display = met === 1 ? 'block' : 'none';
-    }
-
-    function calcularCambio() {
-      const total = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
-      const recibido = parseFloat(document.getElementById('pos-efectivo-recibido').value) || 0;
-      const cambio = recibido - total;
-      document.getElementById('pos-cambio').innerText = formatoMXN(cambio >= 0 ? cambio : 0);
-    }
-
-    function cancelarTicket() {
-      ticketPOS = [];
-      document.getElementById('pos-efectivo-recibido').value = '';
-      renderTicket();
-    }
-
-    async function cobrarTicket() {
-      if (!ticketPOS.length) return;
-
-      const payload = {
-        usuarioId: usuarioSesion ? usuarioSesion.id : 1,
-        metodoPago: metodoPagoPOS,
-        lineas: ticketPOS.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad }))
-      };
-
-      try {
-        const res = await fetch('/api/ventas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          const venta = await res.json();
-          alert(`✅ VENTA EXITOSA\n\nFolio: ${venta.numeroTicket}\nTotal: ${formatoMXN(venta.total)}\nAtendió: ${usuarioSesion ? usuarioSesion.nombreCompleto : 'Caja General'}`);
-          cancelarTicket();
-          cargarDatos();
-        } else {
-          const err = await res.json();
-          alert('Error: ' + (err.error || 'No se pudo procesar'));
-        }
-      } catch (e) {
-        alert('Error de conexión');
-      }
-    }
-
-    function filtrarTienda() {
-      const q = document.getElementById('filtro-busqueda-tienda').value.toLowerCase();
-      renderTienda(catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
-    }
-
-    function filtrarPOS() {
-      const q = document.getElementById('filtro-pos').value.toLowerCase();
-      renderPOS(catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
-    }
-
-    async function eliminarPrenda(id) {
-      if (confirm('¿Dar de baja esta prenda del catálogo?')) {
-        await fetch(`/api/prendas/${id}`, { method: 'DELETE' });
-        cargarDatos();
-      }
-    }
-
-    // Inicio
-    aplicarPermisosRol();
-    cargarDatos();
+    cargarCatalogo();
   </script>
 </body>
 </html>

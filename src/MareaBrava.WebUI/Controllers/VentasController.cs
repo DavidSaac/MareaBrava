@@ -1,6 +1,9 @@
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using MareaBrava.Application.DTOs;
-using MareaBrava.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using MareaBrava.Domain.Entities;
+using MareaBrava.Domain.Enums;
+using MareaBrava.Infrastructure.Data;
 
 namespace MareaBrava.WebUI.Controllers;
 
@@ -8,53 +11,279 @@ namespace MareaBrava.WebUI.Controllers;
 [Route("api/[controller]")]
 public class VentasController : ControllerBase
 {
-    private readonly IVentaService _ventaService;
+    private readonly MareaBravaDbContext _context;
 
-    public VentasController(IVentaService ventaService)
+    public VentasController(MareaBravaDbContext context)
     {
-        _ventaService = ventaService;
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> ObtenerHistorial()
-    {
-        var ventas = await _ventaService.ObtenerHistorialVentasAsync();
-        return Ok(ventas);
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> ObtenerPorId(int id)
-    {
-        var venta = await _ventaService.ObtenerPorIdAsync(id);
-        if (venta == null) return NotFound(new { mensaje = $"Venta con ID {id} no encontrada." });
-        return Ok(venta);
-    }
-
-    [HttpGet("ticket/{numeroTicket}")]
-    public async Task<IActionResult> ObtenerPorTicket(string numeroTicket)
-    {
-        var venta = await _ventaService.ObtenerPorTicketAsync(numeroTicket);
-        if (venta == null) return NotFound(new { mensaje = $"Ticket '{numeroTicket}' no encontrado." });
-        return Ok(venta);
+        _context = context;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Registrar([FromBody] RegistrarVentaDto dto)
+    public async Task<IActionResult> CrearVenta([FromBody] CrearVentaDto dto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (dto.Lineas == null || !dto.Lineas.Any())
+            return BadRequest(new { error = "El ticket no contiene prendas." });
 
-        try
+        var prendaIds = dto.Lineas.Select(l => l.PrendaId).ToList();
+        var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
+
+        decimal totalVenta = 0;
+        var detalles = new List<DetalleVenta>();
+
+        foreach (var linea in dto.Lineas)
         {
-            var ventaRealizada = await _ventaService.ProcesarVentaAsync(dto);
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = ventaRealizada.Id }, ventaRealizada);
+            var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
+            if (prenda == null || !prenda.Activo)
+                return BadRequest(new { error = $"La prenda con ID {linea.PrendaId} no existe o está inactiva." });
+
+            if (prenda.StockActual < linea.Cantidad)
+                return BadRequest(new { error = $"Stock insuficiente para '{prenda.Nombre}'. Disponibles: {prenda.StockActual}" });
+
+            prenda.StockActual -= linea.Cantidad;
+
+            var detalle = new DetalleVenta
+            {
+                PrendaId = prenda.Id,
+                Cantidad = linea.Cantidad,
+                PrecioUnitario = prenda.PrecioVenta
+            };
+
+            totalVenta += detalle.PrecioUnitario * detalle.Cantidad;
+            detalles.Add(detalle);
         }
-        catch (KeyNotFoundException ex)
+
+        var consecutivo = await _context.Ventas.CountAsync() + 1;
+        var numeroTicket = $"MB-{DateTime.UtcNow:yyyyMMdd}-{consecutivo:D4}";
+
+        var venta = new Venta
         {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (InvalidOperationException ex)
+            NumeroTicket = numeroTicket,
+            UsuarioId = dto.UsuarioId,
+            MetodoPago = (MetodoPago)dto.MetodoPago,
+            Total = totalVenta,
+            Detalles = detalles,
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow
+        };
+
+        _context.Ventas.Add(venta);
+        await _context.SaveChangesAsync();
+
+        return Ok(new
         {
-            return BadRequest(new { error = ex.Message });
-        }
+            venta.Id,
+            venta.NumeroTicket,
+            venta.Total,
+            venta.FechaCreacion,
+            venta.MetodoPago
+        });
     }
+
+    [HttpPost("sincronizar-lote")]
+    public async Task<IActionResult> SincronizarLote([FromBody] List<VentaOfflineDto> ventasOffline)
+    {
+        if (ventasOffline == null || !ventasOffline.Any())
+            return Ok(new { procesadas = 0, mensaje = "No hay ventas para sincronizar." });
+
+        int procesadas = 0;
+
+        foreach (var vOff in ventasOffline)
+        {
+            var prendaIds = vOff.Lineas.Select(l => l.PrendaId).ToList();
+            var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
+
+            decimal totalVenta = 0;
+            var detalles = new List<DetalleVenta>();
+
+            foreach (var linea in vOff.Lineas)
+            {
+                var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
+                if (prenda != null && prenda.Activo)
+                {
+                    prenda.StockActual = Math.Max(0, prenda.StockActual - linea.Cantidad);
+
+                    var detalle = new DetalleVenta
+                    {
+                        PrendaId = prenda.Id,
+                        Cantidad = linea.Cantidad,
+                        PrecioUnitario = prenda.PrecioVenta
+                    };
+
+                    totalVenta += detalle.PrecioUnitario * detalle.Cantidad;
+                    detalles.Add(detalle);
+                }
+            }
+
+            var consecutivo = await _context.Ventas.CountAsync() + 1;
+            var numeroTicket = $"MB-{DateTime.UtcNow:yyyyMMdd}-{consecutivo:D4}";
+
+            var venta = new Venta
+            {
+                NumeroTicket = numeroTicket,
+                UsuarioId = vOff.UsuarioId > 0 ? vOff.UsuarioId : 1,
+                MetodoPago = (MetodoPago)vOff.MetodoPago,
+                Total = totalVenta > 0 ? totalVenta : vOff.TotalEstimado,
+                Detalles = detalles,
+                Activo = true,
+                FechaCreacion = vOff.FechaLocal != default ? vOff.FechaLocal : DateTime.UtcNow
+            };
+
+            _context.Ventas.Add(venta);
+            procesadas++;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { procesadas, mensaje = $"Se sincronizaron exitosamente {procesadas} venta(s) fuera de línea." });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ObtenerHistorial([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
+    {
+        var query = _context.Ventas
+            .Include(v => v.Usuario)
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Prenda)
+            .AsQueryable();
+
+        if (desde.HasValue)
+        {
+            var fechaInicioUtc = DateTime.SpecifyKind(desde.Value.Date, DateTimeKind.Utc);
+            query = query.Where(v => v.FechaCreacion >= fechaInicioUtc);
+        }
+
+        if (hasta.HasValue)
+        {
+            var fechaFinUtc = DateTime.SpecifyKind(hasta.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+            query = query.Where(v => v.FechaCreacion <= fechaFinUtc);
+        }
+
+        var ventas = await query
+            .OrderByDescending(v => v.FechaCreacion)
+            .Select(v => new
+            {
+                v.Id,
+                v.NumeroTicket,
+                v.FechaCreacion,
+                v.MetodoPago,
+                v.Total,
+                v.Activo,
+                Cajero = v.Usuario != null ? v.Usuario.NombreCompleto : "Staff",
+                TotalCosto = v.Detalles.Sum(d => d.Prenda != null ? d.Prenda.PrecioCosto * d.Cantidad : 0),
+                GananciaNeta = v.Total - v.Detalles.Sum(d => d.Prenda != null ? d.Prenda.PrecioCosto * d.Cantidad : 0),
+                TotalPiezas = v.Detalles.Sum(d => d.Cantidad),
+                Lineas = v.Detalles.Select(d => new
+                {
+                    d.PrendaId,
+                    Nombre = d.Prenda != null ? d.Prenda.Nombre : "Prenda",
+                    Sku = d.Prenda != null ? d.Prenda.Sku : "",
+                    Color = d.Prenda != null ? d.Prenda.Color : "",
+                    Talla = d.Prenda != null ? (int)d.Prenda.Talla : 3,
+                    d.Cantidad,
+                    d.PrecioUnitario,
+                    Subtotal = d.PrecioUnitario * d.Cantidad
+                })
+            })
+            .ToListAsync();
+
+        return Ok(ventas);
+    }
+
+    [HttpPost("{id}/cancelar")]
+    public async Task<IActionResult> CancelarVenta(int id)
+    {
+        var venta = await _context.Ventas
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Prenda)
+            .FirstOrDefaultAsync(v => v.Id == id);
+
+        if (venta == null) return NotFound(new { error = "Venta no encontrada." });
+        if (!venta.Activo) return BadRequest(new { error = "Esta venta ya fue cancelada anteriormente." });
+
+        foreach (var detalle in venta.Detalles)
+        {
+            if (detalle.Prenda != null)
+            {
+                detalle.Prenda.StockActual += detalle.Cantidad;
+            }
+        }
+
+        venta.Activo = false;
+        venta.FechaModificacion = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return Ok(new { mensaje = $"Venta {venta.NumeroTicket} cancelada exitosamente." });
+    }
+
+    [HttpGet("exportar-excel")]
+    public async Task<IActionResult> ExportarVentasExcel([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
+    {
+        var query = _context.Ventas
+            .Include(v => v.Usuario)
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Prenda)
+            .AsQueryable();
+
+        if (desde.HasValue)
+        {
+            var fechaInicioUtc = DateTime.SpecifyKind(desde.Value.Date, DateTimeKind.Utc);
+            query = query.Where(v => v.FechaCreacion >= fechaInicioUtc);
+        }
+
+        if (hasta.HasValue)
+        {
+            var fechaFinUtc = DateTime.SpecifyKind(hasta.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+            query = query.Where(v => v.FechaCreacion <= fechaFinUtc);
+        }
+
+        var ventas = await query.OrderByDescending(v => v.FechaCreacion).ToListAsync();
+
+        var builder = new StringBuilder();
+        builder.AppendLine("sep=,");
+        builder.AppendLine("Folio,Fecha,Hora,Cajera,Metodo de Pago,Prendas,Total Costo,Total Venta,Ganancia Neta,Estado");
+
+        foreach (var v in ventas)
+        {
+            var fecha = v.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy");
+            var hora = v.FechaCreacion.ToLocalTime().ToString("HH:mm:ss");
+            var metodo = v.MetodoPago.ToString();
+            var totalCosto = v.Detalles.Sum(d => d.Prenda != null ? d.Prenda.PrecioCosto * d.Cantidad : 0);
+            var ganancia = v.Total - totalCosto;
+            var estado = v.Activo ? "Completada" : "Cancelada";
+            var cajero = v.Usuario != null ? v.Usuario.NombreCompleto : "Staff";
+            var prendasTexto = string.Join(" | ", v.Detalles.Select(d => $"{d.Cantidad}x {(d.Prenda != null ? d.Prenda.Nombre : "Item")} ({(d.Prenda != null ? d.Prenda.Talla.ToString() : "")})"));
+
+            builder.AppendLine($"\"{v.NumeroTicket}\",\"{fecha}\",\"{hora}\",\"{cajero}\",\"{metodo}\",\"{prendasTexto}\",{totalCosto},{v.Total},{ganancia},\"{estado}\"");
+        }
+
+        var encoding = Encoding.UTF8;
+        var preamble = encoding.GetPreamble();
+        var bytes = encoding.GetBytes(builder.ToString());
+        var finalBytes = preamble.Concat(bytes).ToArray();
+
+        var nombreArchivo = $"MareaBrava_Ventas_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+        return File(finalBytes, "text/csv; charset=utf-8", nombreArchivo);
+    }
+}
+
+public class CrearVentaDto
+{
+    public int UsuarioId { get; set; }
+    public int MetodoPago { get; set; }
+    public List<LineaVentaDto> Lineas { get; set; } = new();
+}
+
+public class LineaVentaDto
+{
+    public int PrendaId { get; set; }
+    public int Cantidad { get; set; }
+}
+
+public class VentaOfflineDto
+{
+    public string FolioTemporal { get; set; } = string.Empty;
+    public int UsuarioId { get; set; }
+    public int MetodoPago { get; set; }
+    public decimal TotalEstimado { get; set; }
+    public DateTime FechaLocal { get; set; }
+    public List<LineaVentaDto> Lineas { get; set; } = new();
 }

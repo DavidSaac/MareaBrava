@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using MareaBrava.Domain.Entities;
 using MareaBrava.Domain.Enums;
 
@@ -7,70 +8,88 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(MareaBravaDbContext context)
     {
-        // 1. Crear usuario Administrador si no existe
-        if (!context.Usuarios.Any())
+        // 1. Crear las tablas si no existen físicamente
+        await context.Database.EnsureCreatedAsync();
+
+        // 2. Sembrar Usuarios si la tabla está vacía
+        if (!await context.Usuarios.AnyAsync())
         {
-            context.Usuarios.Add(new Usuario
-            {
-                NombreCompleto = "Administrador Marea Brava",
-                Email = "admin@mareabrava.com",
-                PasswordHash = "admin123", // Para desarrollo inicial
-                Rol = RolUsuario.Administrador,
-                Activo = true
-            });
+            await context.Usuarios.AddRangeAsync(
+                new Usuario
+                {
+                    NombreCompleto = "Ximena",
+                    Email = "ximena@mareabrava.com",
+                    PasswordHash = "Admin123!",
+                    Rol = RolUsuario.Administrador,
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
+                },
+                new Usuario
+                {
+                    NombreCompleto = "Elizabeth",
+                    Email = "elizabeth@mareabrava.com",
+                    PasswordHash = "Cajero123!",
+                    Rol = RolUsuario.Cajero,
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
+                }
+            );
             await context.SaveChangesAsync();
         }
 
-        // 2. Crear prendas iniciales de ejemplo si no existen
-        if (!context.Prendas.Any())
+        // 3. Sembrar Prendas iniciales si está vacío
+        if (!await context.Prendas.AnyAsync())
         {
-            var prendasIniciales = new List<Prenda>
-            {
+            await context.Prendas.AddRangeAsync(
                 new Prenda
                 {
-                    Sku = "BIK-COR-001-S",
+                    Sku = "MB-800101",
                     Nombre = "Bikini Sunset Coral (Top + Bottom)",
-                    Descripcion = "Conjunto de dos piezas en tono coral vibrante con tirantes ajustables.",
+                    Descripcion = "Traje de baño de 2 piezas elaborado con tela de secado rápido y protección UV.",
                     TipoPieza = TipoPieza.DosPiezas,
                     Talla = TallaPrenda.S,
                     Color = "Coral",
-                    PrecioCosto = 280.00m,
-                    PrecioVenta = 590.00m,
-                    StockActual = 12,
+                    PrecioCosto = 180.00m,
+                    PrecioVenta = 549.00m,
+                    StockActual = 8,
                     StockMinimo = 3,
-                    Activo = true
+                    ImagenUrl = "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
                 },
                 new Prenda
                 {
-                    Sku = "TRA-NEG-002-M",
+                    Sku = "MB-800102",
+                    Nombre = "Top Deportivo Turquesa",
+                    Descripcion = "Top individual con soporte reforzado ideal para deportes acuáticos.",
+                    TipoPieza = TipoPieza.TopIndividual,
+                    Talla = TallaPrenda.M,
+                    Color = "Turquesa",
+                    PrecioCosto = 130.00m,
+                    PrecioVenta = 389.00m,
+                    StockActual = 12,
+                    StockMinimo = 3,
+                    ImagenUrl = "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
+                },
+                new Prenda
+                {
+                    Sku = "MB-800103",
                     Nombre = "Traje Completo Deep Black",
-                    Descripcion = "Traje de baño completo con escote en espalda y control de abdomen.",
+                    Descripcion = "Traje entero con escote elegante y ajuste estilizador.",
                     TipoPieza = TipoPieza.UnaPieza,
                     Talla = TallaPrenda.M,
                     Color = "Negro",
-                    PrecioCosto = 320.00m,
-                    PrecioVenta = 680.00m,
-                    StockActual = 8,
-                    StockMinimo = 2,
-                    Activo = true
-                },
-                new Prenda
-                {
-                    Sku = "TOP-TUR-003-L",
-                    Nombre = "Top Deportivo Turquesa",
-                    Descripcion = "Top individual tipo crop con protección UV para deportes acuáticos.",
-                    TipoPieza = TipoPieza.TopIndividual,
-                    Talla = TallaPrenda.L,
-                    Color = "Turquesa",
-                    PrecioCosto = 190.00m,
-                    PrecioVenta = 420.00m,
-                    StockActual = 2, // Alerta: bajo stock
+                    PrecioCosto = 220.00m,
+                    PrecioVenta = 699.00m,
+                    StockActual = 6,
                     StockMinimo = 3,
-                    Activo = true
+                    ImagenUrl = "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=600",
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
                 }
-            };
-
-            context.Prendas.AddRange(prendasIniciales);
+            );
             await context.SaveChangesAsync();
         }
     }
