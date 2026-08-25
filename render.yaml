@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: marea-brava-api
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        value: Data Source=/var/data/mareabrava.db
+      - key: Cors__AllowedOrigins__0
+        sync: false
+    disk:
+      name: marea-brava-data
+      mountPath: /var/data
+      sizeGB: 1

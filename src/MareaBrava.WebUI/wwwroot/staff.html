@@ -205,7 +205,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-7 xl:col-span-8 space-y-4">
           <div class="relative">
-            <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Buscar prenda o escanear código SKU con la pistola..." class="w-full bg-white border-2 border-brand-borderCream rounded-2xl p-4 pl-5 pr-12 text-base font-semibold focus:outline-brand-magenta shadow-sm" autofocus />
+            <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Buscar prenda o escanear código SKU" class="w-full bg-white border-2 border-brand-borderCream rounded-2xl p-4 pl-5 pr-12 text-base font-semibold focus:outline-brand-magenta shadow-sm" autofocus />
             <i class="fa-solid fa-barcode absolute right-4 top-4 text-slate-400 text-2xl"></i>
           </div>
           <div id="grid-pos-items" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[640px] overflow-y-auto custom-scroll pr-2"></div>
@@ -283,6 +283,9 @@
             <i class="fa-solid fa-file-excel"></i>
             <span>Excel Filtrado</span>
           </button>
+          <button onclick="registrarGasto()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+            <i class="fa-solid fa-receipt"></i><span>Registrar gasto</span>
+          </button>
         </div>
       </div>
 
@@ -302,6 +305,11 @@
           <p class="text-xs font-bold text-emerald-800 uppercase">✨ Ganancia Neta</p>
           <h3 id="met-ganancia" class="text-2xl font-black text-emerald-700">$0.00 MXN</h3>
           <p class="text-[11px] text-emerald-800 font-bold" id="met-margen">Margen estimado</p>
+        </div>
+        <div class="bg-rose-50/70 p-5 rounded-3xl border border-rose-200 shadow-sm space-y-1">
+          <p class="text-xs font-bold text-rose-800 uppercase">Gastos del periodo</p>
+          <h3 id="met-gastos" class="text-2xl font-black text-rose-700">$0.00 MXN</h3>
+          <p class="text-[11px] text-rose-800 font-semibold">Renta, limpieza y servicios</p>
         </div>
         <div class="bg-pink-50/70 p-5 rounded-3xl border border-pink-200 shadow-sm space-y-1">
           <p class="text-xs font-bold text-pink-800 uppercase">👙 Piezas Vendidas</p>
@@ -331,6 +339,7 @@
             <div class="h-36 relative">
               <canvas id="chartMetodos"></canvas>
             </div>
+            <div id="conteo-metodos" class="grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-600"></div>
           </div>
 
           <div class="border-t pt-3 space-y-2">
@@ -399,6 +408,9 @@
           <button onclick="abrirModalPrenda()" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-5 py-2.5 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 transition active:scale-95">
             <i class="fa-solid fa-plus text-sm"></i>
             <span>Subir Nuevo Modelo</span>
+          </button>
+          <button onclick="gestionarCategorias()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 transition active:scale-95">
+            <i class="fa-solid fa-tags"></i><span>Categorías</span>
           </button>
         </div>
       </div>
@@ -689,13 +701,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block mb-1 font-bold">Tipo de Pieza</label>
-            <select id="m-tipo" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
-              <option value="2">Dos Piezas (Bikini)</option>
-              <option value="1">Una Pieza (Entero)</option>
-              <option value="3">Top Individual</option>
-              <option value="4">Bottom Individual</option>
-              <option value="5">Accesorio / Pareo</option>
-            </select>
+            <select id="m-tipo" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white" required></select>
           </div>
           <div>
             <label class="block mb-1 font-bold">Talla</label>
@@ -713,17 +719,17 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block mb-1 font-bold">Precio Costo ($ MXN)</label>
-            <input type="number" id="m-costo" step="0.50" required value="250.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
+            <input type="number" id="m-costo" step="0.50" required class="w-full border-2 border-slate-200 rounded-xl p-2.5" />
           </div>
           <div>
             <label class="block mb-1 font-bold">Precio Venta ($ MXN)</label>
-            <input type="number" id="m-precio" step="0.50" required value="599.00" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-black text-brand-magenta" />
+            <input type="number" id="m-precio" step="0.50" required class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-black text-brand-magenta" />
           </div>
         </div>
 
         <div>
           <label class="block mb-1 font-bold">Stock Actual en Bodega</label>
-          <input type="number" id="m-stock" required min="0" value="12" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-bold" />
+          <input type="number" id="m-stock" required min="0" class="w-full border-2 border-slate-200 rounded-xl p-2.5 font-bold" />
         </div>
 
         <div class="pt-4 flex justify-end gap-3 border-t">
@@ -731,6 +737,41 @@
           <button type="submit" class="px-6 py-2.5 bg-brand-magenta hover:bg-brand-magentaHover text-white font-black rounded-xl shadow-md">Guardar Cambios</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL CATEGORIAS ================= -->
+  <div id="modal-categorias" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-brand-borderCream max-h-[92vh] overflow-y-auto custom-scroll">
+      <div class="flex justify-between items-center border-b pb-4">
+        <div>
+          <h3 class="font-serif font-black text-2xl text-brand-magenta">Categorías de Productos</h3>
+          <p class="text-xs text-slate-500 font-medium">Añade, activa o da de baja categorías del catálogo</p>
+        </div>
+        <button onclick="cerrarModalCategorias()" class="text-slate-400 hover:text-slate-700 p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
+      </div>
+
+      <form onsubmit="crearCategoria(event)" class="space-y-3 bg-pink-50/50 p-4 rounded-2xl border-2 border-dashed border-brand-magenta/40">
+        <label class="block text-xs font-black uppercase text-brand-magenta">Nueva categoría</label>
+        <div class="flex gap-2">
+          <input type="text" id="categoria-nombre" required maxlength="100" placeholder="Ej: Accesorios de playa" class="flex-1 min-w-0 border-2 border-slate-200 rounded-xl p-3 text-sm font-semibold focus:outline-brand-magenta" />
+          <button type="submit" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i><span>Añadir</span>
+          </button>
+        </div>
+      </form>
+
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h4 class="text-xs font-black uppercase text-slate-500">Categorías registradas</h4>
+          <span id="categorias-cargando" class="text-[11px] text-slate-400"></span>
+        </div>
+        <div id="lista-categorias-admin" class="space-y-2"></div>
+      </div>
+
+      <div class="pt-3 border-t flex justify-end">
+        <button type="button" onclick="cerrarModalCategorias()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl text-xs">Cerrar</button>
+      </div>
     </div>
   </div>
 
@@ -743,8 +784,10 @@
     let usuarioStaff = JSON.parse(localStorage.getItem('mb_staff_user')) || null;
     let estadoTurnoCaja = null;
     let historialVentas = [];
+    let gastosPeriodo = [];
     let prendasAdminFiltradas = [];
     let listaUsuarios = [];
+    let categoriasProductos = [];
     let chartTendenciaInstancia = null;
     let chartMetodosInstancia = null;
 
@@ -863,6 +906,7 @@
           const resultado = await res.json();
           await limpiarVentasPendientes();
           alert(`☁️ SINCRONIZACIÓN EXITOSA:\n\n${resultado.mensaje}`);
+          await cargarCategorias();
           cargarDatos();
           if (esAdmin()) cargarHistorialVentas();
           await verificarEstadoTurnoCaja();
@@ -1014,7 +1058,7 @@
       try {
         if (navigator.onLine) {
           const res = await fetch('/api/prendas');
-          catalogo = await res.json();
+          catalogo = (await res.json()).map(p => ({ ...p, imagenUrl: mediaUrl(p.imagenUrl) }));
           await guardarCatalogoLocal(catalogo);
         } else {
           catalogo = await obtenerCatalogoLocal();
@@ -1024,6 +1068,94 @@
       }
       renderPOS(catalogo);
       if (esAdmin()) aplicarFiltrosAdmin();
+    }
+
+    async function cargarCategorias() {
+      const res = await fetch('/api/categorias');
+      if (!res.ok) throw new Error('No se pudieron cargar las categorías.');
+      categoriasProductos = await res.json();
+
+      const opciones = categoriasProductos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+      document.getElementById('m-tipo').innerHTML = opciones;
+      document.getElementById('admin-filtro-tipo').innerHTML = '<option value="0">Todas las categorías</option>' + opciones;
+    }
+
+    async function gestionarCategorias() {
+      if (!esAdmin()) return;
+      document.getElementById('modal-categorias').classList.remove('hidden');
+      document.getElementById('modal-categorias').classList.add('flex');
+      await cargarCategoriasAdmin();
+    }
+
+    function cerrarModalCategorias() {
+      document.getElementById('modal-categorias').classList.add('hidden');
+      document.getElementById('modal-categorias').classList.remove('flex');
+    }
+
+    async function cargarCategoriasAdmin() {
+      const estado = document.getElementById('categorias-cargando');
+      const lista = document.getElementById('lista-categorias-admin');
+      estado.innerText = 'Cargando...';
+
+      try {
+        const res = await fetch('/api/categorias/todas');
+        if (!res.ok) throw new Error('No se pudieron cargar las categorías.');
+        const categorias = await res.json();
+        lista.innerHTML = categorias.map(c => `
+          <div class="flex items-center justify-between gap-3 p-3 rounded-xl border ${c.activo ? 'border-slate-200 bg-slate-50' : 'border-rose-200 bg-rose-50/60 opacity-75'}">
+            <div class="min-w-0">
+              <p class="font-bold text-slate-800 truncate">${c.nombre}</p>
+              <p class="text-[11px] text-slate-500">${c.prendasActivas} modelo(s) activo(s) · ${c.activo ? 'Activa' : 'Inactiva'}</p>
+            </div>
+            <button type="button" onclick="cambiarEstadoCategoria(${c.id}, '${c.nombre.replace(/'/g, "\\'")}', ${c.activo}, ${c.prendasActivas})" class="shrink-0 ${c.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2.5 rounded-xl transition" title="${c.activo ? 'Dar de baja' : 'Reactivar'}">
+              <i class="fa-solid ${c.activo ? 'fa-trash-can' : 'fa-rotate-left'}"></i>
+            </button>
+          </div>
+        `).join('');
+        estado.innerText = `${categorias.length} registrada(s)`;
+      } catch (error) {
+        estado.innerText = 'Error';
+        lista.innerHTML = '<p class="p-4 text-center text-rose-600 text-xs font-bold">No se pudieron cargar las categorías.</p>';
+      }
+    }
+
+    async function crearCategoria(e) {
+      e.preventDefault();
+      const input = document.getElementById('categoria-nombre');
+      const res = await fetch('/api/categorias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: input.value.trim() })
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'No se pudo crear la categoría.');
+        return;
+      }
+
+      input.value = '';
+      await cargarCategorias();
+      await cargarCategoriasAdmin();
+      await cargarDatos();
+    }
+
+    async function cambiarEstadoCategoria(id, nombre, activo, prendasActivas) {
+      if (activo && prendasActivas > 0) {
+        alert('No se puede dar de baja una categoría con modelos activos. Reasigna primero esas prendas.');
+        return;
+      }
+      if (!confirm(`${activo ? '¿Dar de baja' : '¿Reactivar'} la categoría "${nombre}"?`)) return;
+
+      const res = await fetch(`/api/categorias/${id}/estado`, { method: 'PATCH' });
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'No se pudo cambiar el estado.');
+        return;
+      }
+
+      await cargarCategorias();
+      await cargarCategoriasAdmin();
+      await cargarDatos();
     }
 
     // ================= REPORTES, FECHAS & ANALÍTICA (ADMIN) =================
@@ -1070,38 +1202,36 @@
       try {
         if (navigator.onLine) {
           const res = await fetch(url);
-          historialVentas = await res.json();
+          const [ventasRes, gastosRes] = await Promise.all([fetch(url), fetch(`/api/gastos${params.length ? `?${params.join('&')}` : ''}`)]);
+          historialVentas = await ventasRes.json();
+          gastosPeriodo = gastosRes.ok ? await gastosRes.json() : [];
         }
-        procesarAnaliticaVentas(historialVentas);
+        procesarAnaliticaVentas(historialVentas, gastosPeriodo);
         renderTablaVentas(historialVentas);
       } catch (e) {
         console.error("Error al cargar ventas:", e);
       }
     }
 
-    function procesarAnaliticaVentas(ventas) {
+    function procesarAnaliticaVentas(ventas, gastos = []) {
       if (!esAdmin()) return;
       const activas = ventas.filter(v => v.activo);
       const totalIngresos = activas.reduce((acc, v) => acc + v.total, 0);
       const totalCostos = activas.reduce((acc, v) => acc + (v.totalCosto || 0), 0);
       const totalPiezas = activas.reduce((acc, v) => acc + (v.totalPiezas || 0), 0);
-      const gananciaNeta = totalIngresos - totalCostos;
+      const totalGastos = gastos.reduce((acc, gasto) => acc + gasto.monto, 0);
+      const gananciaNeta = totalIngresos - totalCostos - totalGastos;
       const margen = totalIngresos > 0 ? ((gananciaNeta / totalIngresos) * 100).toFixed(1) : 0;
 
       document.getElementById('met-ingresos').innerText = formatoMXN(totalIngresos);
       document.getElementById('met-ventas-conteo').innerText = `${activas.length} ventas en periodo`;
       document.getElementById('met-costos').innerText = formatoMXN(totalCostos);
       document.getElementById('met-ganancia').innerText = formatoMXN(gananciaNeta);
+      document.getElementById('met-gastos').innerText = formatoMXN(totalGastos);
       document.getElementById('met-margen').innerText = `Margen estimado: ${margen}%`;
       document.getElementById('met-piezas').innerText = totalPiezas;
 
-      const ventasPorDia = {};
-      activas.forEach(v => {
-        const dia = new Date(v.fechaCreacion).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
-        ventasPorDia[dia] = (ventasPorDia[dia] || 0) + v.total;
-      });
-
-      renderGraficaTendencia(Object.keys(ventasPorDia), Object.values(ventasPorDia));
+      renderGraficaTendencia(totalIngresos, totalCostos, gananciaNeta);
 
       const metodosTotal = { 'Efectivo': 0, 'Tarjeta': 0, 'Transferencia': 0 };
       activas.forEach(v => {
@@ -1110,6 +1240,10 @@
       });
 
       renderGraficaMetodos(Object.keys(metodosTotal), Object.values(metodosTotal));
+      document.getElementById('conteo-metodos').innerHTML = Object.entries(metodosTotal).map(([metodo, total]) => {
+        const cantidad = activas.filter(v => (metodosMap[v.metodoPago] || 'Efectivo') === metodo).length;
+        return `<div class="bg-slate-50 rounded-lg p-2"><span class="block text-slate-400">${metodo}</span><strong class="text-slate-800">${cantidad} cobro(s)</strong></div>`;
+      }).join('');
 
       const conteoProductos = {};
       activas.forEach(v => {
@@ -1132,29 +1266,48 @@
       }
     }
 
-    function renderGraficaTendencia(labels, data) {
+    async function registrarGasto() {
+      if (!esAdmin()) return;
+      const concepto = prompt('Concepto del gasto (renta, limpieza, servicio, etc.):');
+      if (!concepto) return;
+      const monto = Number(prompt('Monto del gasto:'));
+      if (!Number.isFinite(monto) || monto <= 0) return alert('El monto debe ser mayor que cero.');
+      const fecha = prompt('Fecha (AAAA-MM-DD):', new Date().toISOString().slice(0, 10));
+      const res = await fetch('/api/gastos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ concepto, monto, fecha }) });
+      if (!res.ok) { const error = await res.json(); return alert(error.error || 'No se pudo registrar el gasto.'); }
+      await cargarHistorialVentas();
+    }
+
+    function renderGraficaTendencia(totalIngresos, totalCostos, gananciaNeta) {
       const ctx = document.getElementById('chartTendencia').getContext('2d');
       if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
 
       chartTendenciaInstancia = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
-          labels: labels.length ? labels : ['Sin datos'],
+          labels: ['Periodo seleccionado'],
           datasets: [{
-            label: 'Ingresos ($ MXN)',
-            data: data.length ? data : [0],
+            label: 'Ventas totales',
+            data: [totalIngresos],
             borderColor: '#D80064',
-            backgroundColor: 'rgba(216, 0, 100, 0.1)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 3,
-            pointBackgroundColor: '#D80064'
+            backgroundColor: '#D80064',
+            borderWidth: 1
+          }, {
+            label: 'Costo',
+            data: [totalCostos],
+            backgroundColor: '#64748B',
+            borderWidth: 1
+          }, {
+            label: 'Ganancia',
+            data: [gananciaNeta],
+            backgroundColor: '#10B981',
+            borderWidth: 1
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { legend: { display: true, position: 'bottom' } },
           scales: { y: { beginAtZero: true } }
         }
       });
@@ -1293,7 +1446,7 @@
       document.body.className = '';
     }
 
-    function imprimirTicketPOS(folio, lineas, total) {
+    function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0) {
       const cont = document.getElementById('ticket-impresion-contenedor');
       cont.innerHTML = `
         <div class="text-center pb-3 border-b border-black">
@@ -1318,6 +1471,12 @@
           <span>TOTAL:</span>
           <span>${formatoMXN(total)}</span>
         </div>
+        ${metodoPagoPOS === 1 ? `
+          <div class="py-2 space-y-1 text-[11px] border-b border-black">
+            <div class="flex justify-between"><span>EFECTIVO RECIBIDO:</span><span>${formatoMXN(efectivoRecibido)}</span></div>
+            <div class="flex justify-between font-bold"><span>CAMBIO:</span><span>${formatoMXN(cambio)}</span></div>
+          </div>
+        ` : ''}
         <div class="pt-3 text-center text-[10px]">
           <p>¡Gracias por tu compra en Marea Brava!</p>
         </div>
@@ -1544,7 +1703,7 @@
 
     function exportarInventarioExcel() {
       if (!esAdmin()) return;
-      window.location.href = '/api/prendas/exportar-excel';
+      window.location.href = apiUrl('/api/prendas/exportar-excel');
     }
 
     // ================= FILTROS Y CONTROL DE INVENTARIO =================
@@ -1558,7 +1717,7 @@
 
       prendasAdminFiltradas = catalogo.filter(p => {
         const coincideTexto = p.nombre.toLowerCase().includes(texto) || p.sku.toLowerCase().includes(texto) || p.color.toLowerCase().includes(texto);
-        const coincideTipo = tipo === 0 || p.tipoPieza === tipo;
+        const coincideTipo = tipo === 0 || p.categoriaId === tipo;
         const coincideTalla = talla === 0 || p.talla === talla;
         
         let coincideStock = true;
@@ -1588,8 +1747,15 @@
         return;
       }
 
-      tbody.innerHTML = items.map((p, idx) => `
-        <tr class="hover:bg-amber-50/40 transition">
+      let ultimaFecha = '';
+      tbody.innerHTML = items.map((p, idx) => {
+        const fecha = new Date(p.fechaCreacion);
+        const claveFecha = `${fecha.getFullYear()}-${fecha.getMonth()}-${fecha.getDate()}`;
+        const encabezadoFecha = claveFecha !== ultimaFecha
+          ? `<tr class="bg-slate-100/80 border-y border-slate-200"><td colspan="9" class="px-4 py-2.5 text-xs font-black uppercase tracking-wider text-slate-600"><i class="fa-regular fa-calendar mr-1.5 text-brand-magenta"></i>${fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</td></tr>`
+          : '';
+        ultimaFecha = claveFecha;
+        return encabezadoFecha + `<tr class="hover:bg-amber-50/40 transition">
           <td class="p-4 text-center">
             <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-14 h-16 object-cover rounded-xl mx-auto border shadow-sm" />
           </td>
@@ -1626,14 +1792,17 @@
               </button>
             </div>
           </td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
     }
 
     function descargarFotosZip() {
       if (!esAdmin()) return;
       const talla = document.getElementById('admin-filtro-talla').value;
-      window.location.href = `/api/prendas/descargar-fotos-zip?talla=${talla}`;
+      const tipo = document.getElementById('admin-filtro-tipo').value;
+      const texto = encodeURIComponent(document.getElementById('admin-filtro-texto').value);
+      const stock = document.getElementById('admin-filtro-stock').value;
+      window.location.href = apiUrl(`/api/prendas/descargar-fotos-zip?talla=${talla}&categoriaId=${tipo}&q=${texto}&stock=${stock}`);
     }
 
     async function descargarFotosSueltas() {
@@ -1873,7 +2042,12 @@
     // ================= POS =================
     function renderPOS(items) {
       const grid = document.getElementById('grid-pos-items');
-      grid.innerHTML = items.map((p, idx) => `
+      const disponibles = items.filter(p => p.stockActual > 0);
+      if (!disponibles.length) {
+        grid.innerHTML = '<p class="col-span-full py-12 text-center text-slate-400 font-bold">No hay artículos disponibles con stock.</p>';
+        return;
+      }
+      grid.innerHTML = disponibles.map((p, idx) => `
         <div class="bg-white p-4 rounded-2xl border border-brand-borderCream shadow-sm flex flex-col justify-between space-y-3">
           <div class="flex gap-4 items-center">
             <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-20 h-24 object-cover rounded-xl border shadow-sm shrink-0" />
@@ -1999,6 +2173,16 @@
 
       const totalVenta = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
       const lineasImpresion = [...ticketPOS];
+      const efectivoRecibido = metodoPagoPOS === 1
+        ? parseFloat(document.getElementById('pos-efectivo-recibido').value) || 0
+        : 0;
+      const cambio = metodoPagoPOS === 1 ? efectivoRecibido - totalVenta : 0;
+
+      if (metodoPagoPOS === 1 && efectivoRecibido < totalVenta) {
+        alert(`El efectivo recibido debe ser igual o mayor al total de ${formatoMXN(totalVenta)}.`);
+        document.getElementById('pos-efectivo-recibido').focus();
+        return;
+      }
 
       // MODO ONLINE
       if (navigator.onLine) {
@@ -2017,7 +2201,7 @@
 
           if (res.ok) {
             const venta = await res.json();
-            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total);
+            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total, efectivoRecibido, cambio);
             limpiarDespuesDeVenta();
             return;
           }
@@ -2046,7 +2230,7 @@
       await guardarCatalogoLocal(catalogo);
       await encolarVentaOffline(ventaLocal);
 
-      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalVenta);
+      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalVenta, efectivoRecibido, cambio);
       limpiarDespuesDeVenta();
       alert(`⚡ VENTA REGISTRADA FUERA DE LÍNEA\n\nFolio: ${folioOffline}\nTotal: ${formatoMXN(totalVenta)}\n\nLa venta se sincronizará automáticamente al volver internet.`);
     }
@@ -2104,7 +2288,7 @@
       document.getElementById('m-nombre').value = p.nombre;
       document.getElementById('m-sku').value = p.sku;
       document.getElementById('m-color').value = p.color;
-      document.getElementById('m-tipo').value = p.tipoPieza;
+      document.getElementById('m-tipo').value = p.categoriaId || '';
       document.getElementById('m-talla').value = p.talla;
       document.getElementById('m-costo').value = p.precioCosto;
       document.getElementById('m-precio').value = p.precioVenta;
@@ -2130,7 +2314,8 @@
       const formData = new FormData();
       formData.append('sku', document.getElementById('m-sku').value);
       formData.append('nombre', document.getElementById('m-nombre').value);
-      formData.append('tipoPieza', document.getElementById('m-tipo').value);
+      formData.append('tipoPieza', '1');
+      formData.append('categoriaId', document.getElementById('m-tipo').value);
       formData.append('talla', document.getElementById('m-talla').value);
       formData.append('color', document.getElementById('m-color').value);
       formData.append('stockActual', document.getElementById('m-stock').value);

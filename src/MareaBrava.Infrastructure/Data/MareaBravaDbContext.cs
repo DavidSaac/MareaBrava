@@ -15,6 +15,8 @@ public class MareaBravaDbContext : DbContext
     public DbSet<Venta> Ventas => Set<Venta>();
     public DbSet<DetalleVenta> DetallesVentas => Set<DetalleVenta>();
     public DbSet<CorteCaja> CortesCaja => Set<CorteCaja>();
+    public DbSet<CategoriaProducto> CategoriasProductos => Set<CategoriaProducto>();
+    public DbSet<Gasto> Gastos => Set<Gasto>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +32,25 @@ public class MareaBravaDbContext : DbContext
             entity.Property(p => p.Color).IsRequired().HasMaxLength(50);
             entity.Property(p => p.PrecioCosto).HasPrecision(18, 2);
             entity.Property(p => p.PrecioVenta).HasPrecision(18, 2);
+            entity.HasOne(p => p.Categoria)
+                  .WithMany(c => c.Prendas)
+                  .HasForeignKey(p => p.CategoriaId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CategoriaProducto>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
+            entity.HasIndex(c => c.Nombre).IsUnique();
+        });
+
+        modelBuilder.Entity<Gasto>(entity =>
+        {
+            entity.HasKey(g => g.Id);
+            entity.Property(g => g.Concepto).IsRequired().HasMaxLength(150);
+            entity.Property(g => g.Monto).HasPrecision(18, 2);
+            entity.Property(g => g.Observaciones).HasMaxLength(500);
         });
 
         // Usuario

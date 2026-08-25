@@ -45,6 +45,8 @@ public class PrendasController : ControllerBase
                 p.Sku,
                 p.Nombre,
                 p.TipoPieza,
+                p.CategoriaId,
+                CategoriaNombre = p.Categoria != null ? p.Categoria.Nombre : null,
                 p.Talla,
                 p.Color,
                 p.StockActual,
@@ -52,6 +54,7 @@ public class PrendasController : ControllerBase
                 p.PrecioCosto,
                 p.PrecioVenta,
                 p.ImagenUrl,
+                p.FechaCreacion,
                 p.Activo
             })
             .ToListAsync();
@@ -73,6 +76,9 @@ public class PrendasController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(dto.Sku) || string.IsNullOrWhiteSpace(dto.Nombre))
             return BadRequest(new { error = "El SKU y Nombre son obligatorios." });
+
+        if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
+            return BadRequest(new { error = "Selecciona una categoría activa." });
 
         var existeSku = await _context.Prendas.AnyAsync(p => p.Sku.ToLower() == dto.Sku.ToLower() && p.Activo);
         if (existeSku)
@@ -103,6 +109,7 @@ public class PrendasController : ControllerBase
             Sku = dto.Sku.Trim().ToUpper(),
             Nombre = dto.Nombre.Trim(),
             TipoPieza = (TipoPieza)dto.TipoPieza,
+            CategoriaId = dto.CategoriaId,
             Talla = (TallaPrenda)dto.Talla,
             Color = dto.Color.Trim(),
             StockActual = dto.StockActual,
@@ -127,9 +134,13 @@ public class PrendasController : ControllerBase
         var prenda = await _context.Prendas.FindAsync(id);
         if (prenda == null || !prenda.Activo) return NotFound(new { error = "Prenda no encontrada." });
 
+        if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
+            return BadRequest(new { error = "Selecciona una categoría activa." });
+
         prenda.Sku = dto.Sku.Trim().ToUpper();
         prenda.Nombre = dto.Nombre.Trim();
         prenda.TipoPieza = (TipoPieza)dto.TipoPieza;
+        prenda.CategoriaId = dto.CategoriaId;
         prenda.Talla = (TallaPrenda)dto.Talla;
         prenda.Color = dto.Color.Trim();
         prenda.StockActual = dto.StockActual;
@@ -202,12 +213,24 @@ public class PrendasController : ControllerBase
 
     [HttpGet("descargar-fotos-zip")]
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
-    public async Task<IActionResult> DescargarFotosZip([FromQuery] int? talla)
+    public async Task<IActionResult> DescargarFotosZip(
+        [FromQuery] int? talla,
+        [FromQuery] int? categoriaId,
+        [FromQuery] string? q,
+        [FromQuery] string? stock)
     {
         var query = _context.Prendas.Where(p => p.Activo && !string.IsNullOrEmpty(p.ImagenUrl)).AsQueryable();
 
         if (talla.HasValue && talla.Value > 0)
             query = query.Where(p => (int)p.Talla == talla.Value);
+        if (categoriaId.HasValue && categoriaId.Value > 0)
+            query = query.Where(p => p.CategoriaId == categoriaId.Value);
+        if (!string.IsNullOrWhiteSpace(q))
+            query = query.Where(p => p.Nombre.ToLower().Contains(q.ToLower()) || p.Sku.ToLower().Contains(q.ToLower()) || p.Color.ToLower().Contains(q.ToLower()));
+        if (stock == "bajo")
+            query = query.Where(p => p.StockActual <= 3 && p.StockActual > 0);
+        if (stock == "agotado")
+            query = query.Where(p => p.StockActual == 0);
 
         var prendas = await query.ToListAsync();
 
@@ -272,6 +295,7 @@ public class CrearPrendaFormDto
     public string Sku { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public int TipoPieza { get; set; }
+    public int? CategoriaId { get; set; }
     public int Talla { get; set; }
     public string Color { get; set; } = string.Empty;
     public int StockActual { get; set; }

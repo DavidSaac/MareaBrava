@@ -9,6 +9,8 @@ public static class DbInitializer
     public static async Task SeedAsync(MareaBravaDbContext context)
     {
         await context.Database.EnsureCreatedAsync();
+        await EnsureCategoriesSchemaAsync(context);
+        await context.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS Gastos (Id INTEGER NOT NULL CONSTRAINT PK_Gastos PRIMARY KEY AUTOINCREMENT, Concepto TEXT NOT NULL, Monto TEXT NOT NULL, FechaGasto TEXT NOT NULL, Observaciones TEXT NULL, FechaCreacion TEXT NOT NULL, FechaModificacion TEXT NULL, Activo INTEGER NOT NULL);");
 
         // 2. Sembrar Usuarios si la tabla está vacía
         if (!await context.Usuarios.AnyAsync())
@@ -46,6 +48,7 @@ public static class DbInitializer
                     Nombre = "Bikini Sunset Coral (Top + Bottom)",
                     Descripcion = "Traje de baño de 2 piezas elaborado con tela de secado rápido y protección UV.",
                     TipoPieza = TipoPieza.DosPiezas,
+                    CategoriaId = await GetCategoryIdAsync(context, "Bikinis (2 Piezas)"),
                     Talla = TallaPrenda.S,
                     Color = "Coral",
                     PrecioCosto = 180.00m,
@@ -62,6 +65,7 @@ public static class DbInitializer
                     Nombre = "Top Deportivo Turquesa",
                     Descripcion = "Top individual con soporte reforzado ideal para deportes acuáticos.",
                     TipoPieza = TipoPieza.TopIndividual,
+                    CategoriaId = await GetCategoryIdAsync(context, "Tops Individuales"),
                     Talla = TallaPrenda.M,
                     Color = "Turquesa",
                     PrecioCosto = 130.00m,
@@ -78,6 +82,7 @@ public static class DbInitializer
                     Nombre = "Traje Completo Deep Black",
                     Descripcion = "Traje entero con escote elegante y ajuste estilizador.",
                     TipoPieza = TipoPieza.UnaPieza,
+                    CategoriaId = await GetCategoryIdAsync(context, "Trajes Completos (1 Pieza)"),
                     Talla = TallaPrenda.M,
                     Color = "Negro",
                     PrecioCosto = 220.00m,
@@ -91,5 +96,43 @@ public static class DbInitializer
             );
             await context.SaveChangesAsync();
         }
+    }
+
+    private static async Task EnsureCategoriesSchemaAsync(MareaBravaDbContext context)
+    {
+        await context.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS CategoriasProductos (Id INTEGER NOT NULL CONSTRAINT PK_CategoriasProductos PRIMARY KEY AUTOINCREMENT, Nombre TEXT NOT NULL, FechaCreacion TEXT NOT NULL, FechaModificacion TEXT NULL, Activo INTEGER NOT NULL);");
+        await context.Database.ExecuteSqlRawAsync("CREATE UNIQUE INDEX IF NOT EXISTS IX_CategoriasProductos_Nombre ON CategoriasProductos (Nombre);");
+
+        var columns = await context.Database.SqlQueryRaw<string>("SELECT name AS Value FROM pragma_table_info('Prendas') WHERE name = 'CategoriaId'").ToListAsync();
+        if (columns.Count == 0)
+            await context.Database.ExecuteSqlRawAsync("ALTER TABLE Prendas ADD COLUMN CategoriaId INTEGER NULL;");
+
+        var categorias = new[]
+        {
+            "Trajes Completos (1 Pieza)",
+            "Bikinis (2 Piezas)",
+            "Tops Individuales",
+            "Bottoms Individuales",
+            "Pareos y Accesorios"
+        };
+
+        foreach (var categoria in categorias)
+        {
+            await context.Database.ExecuteSqlInterpolatedAsync($"INSERT OR IGNORE INTO CategoriasProductos (Nombre, FechaCreacion, Activo) VALUES ({categoria}, {DateTime.UtcNow}, 1)");
+        }
+
+        await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Trajes Completos (1 Pieza)') WHERE CategoriaId IS NULL AND TipoPieza = 1;");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Bikinis (2 Piezas)') WHERE CategoriaId IS NULL AND TipoPieza = 2;");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Tops Individuales') WHERE CategoriaId IS NULL AND TipoPieza = 3;");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Bottoms Individuales') WHERE CategoriaId IS NULL AND TipoPieza = 4;");
+        await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Pareos y Accesorios') WHERE CategoriaId IS NULL AND TipoPieza = 5;");
+    }
+
+    private static async Task<int> GetCategoryIdAsync(MareaBravaDbContext context, string name)
+    {
+        return await context.CategoriasProductos
+            .Where(c => c.Nombre == name)
+            .Select(c => c.Id)
+            .SingleAsync();
     }
 }

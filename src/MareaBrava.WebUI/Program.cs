@@ -4,19 +4,18 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(renderPort))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+
 // 1. Configurar CORS para permitir Cloudflare Pages y pruebas locales
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CloudflarePolicy", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5000",
-                "https://localhost:5001",
-                "https://mareabrava.pages.dev",
-                "https://mareabrava.mx",
-                "https://www.mareabrava.mx",
-                "https://mareabrava.com",
-                "https://www.mareabrava.com")
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? Array.Empty<string>();
+        policy.WithOrigins(origins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -28,7 +27,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "MareaBrava.Auth";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SameSite = builder.Environment.IsDevelopment()
+            ? SameSiteMode.Lax
+            : SameSiteMode.None;
         options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
             ? CookieSecurePolicy.SameAsRequest
             : CookieSecurePolicy.Always;
@@ -71,6 +72,8 @@ app.UseCors("CloudflarePolicy");
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 // 7. Mapear Controladores
 app.MapControllers();

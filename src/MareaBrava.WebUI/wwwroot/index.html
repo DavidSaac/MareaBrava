@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marea Brava | Bikinis & Pareos</title>
   <link rel="manifest" href="/manifest.json" />
+  <script src="/config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,12 +76,8 @@
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
         <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
         <div class="flex flex-col gap-1.5 text-xs font-bold" id="lista-categorias">
-          <button onclick="filtrarCategoria(0)" id="cat-0" class="py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition">✨ Toda la Colección</button>
-          <button onclick="filtrarCategoria(2)" id="cat-2" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">👙 Bikinis (2 Piezas)</button>
-          <button onclick="filtrarCategoria(1)" id="cat-1" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🩱 Trajes Completos (1 Pieza)</button>
-          <button onclick="filtrarCategoria(3)" id="cat-3" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">👚 Tops Individuales</button>
-          <button onclick="filtrarCategoria(4)" id="cat-4" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🩲 Bottoms Individuales</button>
-          <button onclick="filtrarCategoria(5)" id="cat-5" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">🧣 Pareos & Accesorios</button>
+          <button onclick="filtrarCategoria(0)" id="cat-0" class="py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition">Toda la Colección</button>
+          <span id="categorias-publicas-dinamicas"></span>
         </div>
       </div>
 
@@ -231,6 +228,7 @@
   <!-- ================= JAVASCRIPT ================= -->
   <script>
     let prendas = [];
+    let categorias = [];
     let categoriaSeleccionada = 0;
     let tallaSeleccionada = 0;
 
@@ -270,8 +268,12 @@
 
     async function cargarCatalogo() {
       try {
-        const res = await fetch('/api/prendas');
-        prendas = await res.json();
+        const [res, categoriasRes] = await Promise.all([fetch('/api/prendas'), fetch('/api/categorias')]);
+        prendas = (await res.json()).map(p => ({ ...p, imagenUrl: mediaUrl(p.imagenUrl) }));
+        categorias = await categoriasRes.json();
+        document.getElementById('categorias-publicas-dinamicas').innerHTML = categorias.map(c =>
+          `<button onclick="filtrarCategoria(${c.id})" id="cat-${c.id}" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">${c.nombre}</button>`
+        ).join('');
       } catch (e) {
         console.error("Error al cargar prendas", e);
       }
@@ -280,8 +282,8 @@
 
     function filtrarCategoria(cat) {
       categoriaSeleccionada = cat;
-      [0, 1, 2, 3, 4, 5].forEach(c => {
-        const btn = document.getElementById(`cat-${c}`);
+      document.querySelectorAll('[id^="cat-"]').forEach(btn => {
+        const c = Number(btn.id.replace('cat-', ''));
         if (btn) {
           btn.className = c === cat 
             ? "py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition"
@@ -309,7 +311,7 @@
       const orden = document.getElementById('orden-catalogo').value;
 
       let filtradas = prendas.filter(p => {
-        const coincideCat = categoriaSeleccionada === 0 || p.tipoPieza === categoriaSeleccionada;
+        const coincideCat = categoriaSeleccionada === 0 || p.categoriaId === categoriaSeleccionada;
         const coincideTalla = tallaSeleccionada === 0 || p.talla === tallaSeleccionada;
         const coincideStock = !soloDisponibles || p.stockActual > 0;
         return coincideCat && coincideTalla && coincideStock;

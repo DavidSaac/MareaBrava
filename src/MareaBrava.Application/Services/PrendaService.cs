@@ -42,6 +42,7 @@ public class PrendaService : IPrendaService
             Nombre = dto.Nombre,
             Descripcion = dto.Descripcion,
             TipoPieza = dto.TipoPieza,
+            CategoriaId = dto.CategoriaId,
             Talla = dto.Talla,
             Color = dto.Color,
             PrecioCosto = dto.PrecioCosto,
@@ -67,6 +68,7 @@ public class PrendaService : IPrendaService
         prenda.Nombre = dto.Nombre;
         prenda.Descripcion = dto.Descripcion;
         prenda.TipoPieza = dto.TipoPieza;
+        prenda.CategoriaId = dto.CategoriaId;
         prenda.Talla = dto.Talla;
         prenda.Color = dto.Color;
         prenda.PrecioCosto = dto.PrecioCosto;

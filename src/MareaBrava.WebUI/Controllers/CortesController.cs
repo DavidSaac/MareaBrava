@@ -91,11 +91,8 @@ public class CortesController : ControllerBase
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador,Cajero")]
     public async Task<IActionResult> CerrarTurno([FromBody] CerrarTurnoRequest req)
     {
-        var usuarioId = ObtenerUsuarioId();
-        var puedeCerrarCualquierCorte = User.IsInRole(RolUsuario.Administrador.ToString());
-        var corte = await _context.CortesCaja.FirstOrDefaultAsync(c =>
-            c.Id == req.CorteId && c.Abierto &&
-            (puedeCerrarCualquierCorte || c.UsuarioId == usuarioId));
+        var corte = await _context.CortesCaja
+            .FirstOrDefaultAsync(c => c.Id == req.CorteId && c.Abierto);
         if (corte == null)
             return BadRequest(new { error = "No se encontró un turno activo con este identificador." });
 
