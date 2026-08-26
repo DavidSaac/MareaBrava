@@ -822,14 +822,8 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 font-bold">Tipo de Pieza</label>
-            <select id="m-tipo" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white" required>
-              <option value="1">🩱 Traje Completo (1 Pieza)</option>
-              <option value="2">👙 Bikini (2 Piezas)</option>
-              <option value="3">👚 Top Individual</option>
-              <option value="4">🩲 Bottom Individual</option>
-              <option value="5">🧣 Pareo / Accesorio</option>
-            </select>
+            <label class="block mb-1 font-bold">Categoría</label>
+            <select id="m-categoria" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white" required></select>
           </div>
           <div>
             <label class="block mb-1 font-bold">Talla</label>
@@ -842,11 +836,6 @@
               <option value="6">Unitalla</option>
             </select>
           </div>
-        </div>
-
-        <div>
-          <label class="block mb-1 font-bold">Categoría</label>
-          <select id="m-categoria" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white" required></select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -891,6 +880,16 @@
           <button type="submit" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5">
             <i class="fa-solid fa-plus"></i><span>Añadir</span>
           </button>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo de pieza (configuración interna, no se muestra al crear un producto)</label>
+          <select id="categoria-tipo-pieza" required class="w-full border-2 border-slate-200 rounded-xl p-2.5 text-sm font-semibold bg-white">
+            <option value="1">Traje Completo (1 Pieza)</option>
+            <option value="2">Bikini (2 Piezas)</option>
+            <option value="3">Top Individual</option>
+            <option value="4">Bottom Individual</option>
+            <option value="5" selected>Pareo / Accesorio</option>
+          </select>
         </div>
       </form>
 
@@ -944,6 +943,7 @@
     let prendasAdminFiltradas = [];
     let listaUsuarios = [];
     let categoriasProductos = [];
+    const TIPOS_PIEZA_LABELS = { 1: 'Traje Completo', 2: 'Bikini', 3: 'Top Individual', 4: 'Bottom Individual', 5: 'Pareo / Accesorio' };
     let chartTendenciaInstancia = null;
     let chartMetodosInstancia = null;
 
@@ -1280,7 +1280,7 @@
           <div class="flex items-center justify-between gap-3 p-3 rounded-xl border ${c.activo ? 'border-slate-200 bg-slate-50' : 'border-rose-200 bg-rose-50/60 opacity-75'}">
             <div class="min-w-0">
               <p class="font-bold text-slate-800 truncate">${escHtml(c.nombre)}</p>
-              <p class="text-[11px] text-slate-500">${c.prendasActivas} modelo(s) activo(s) · ${c.activo ? 'Activa' : 'Inactiva'}</p>
+              <p class="text-[11px] text-slate-500">${c.prendasActivas} modelo(s) activo(s) · ${c.activo ? 'Activa' : 'Inactiva'} · Tipo interno: ${TIPOS_PIEZA_LABELS[c.tipoPieza] || '—'}</p>
             </div>
             <button type="button" onclick="cambiarEstadoCategoria(${c.id}, ${escJsString(c.nombre)}, ${c.activo}, ${c.prendasActivas})" class="shrink-0 ${c.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2.5 rounded-xl transition" title="${c.activo ? 'Dar de baja' : 'Reactivar'}">
               <i class="fa-solid ${c.activo ? 'fa-trash-can' : 'fa-rotate-left'}"></i>
@@ -1297,10 +1297,11 @@
     async function crearCategoria(e) {
       e.preventDefault();
       const input = document.getElementById('categoria-nombre');
+      const tipoPiezaSelect = document.getElementById('categoria-tipo-pieza');
       const res = await fetch('/api/categorias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: input.value.trim() })
+        body: JSON.stringify({ nombre: input.value.trim(), tipoPieza: Number(tipoPiezaSelect.value) })
       });
       if (!res.ok) {
         const error = await res.json();
@@ -1309,6 +1310,7 @@
       }
 
       input.value = '';
+      tipoPiezaSelect.value = '5';
       await cargarCategorias();
       await cargarCategoriasAdmin();
       await cargarDatos();
@@ -2816,7 +2818,6 @@
       document.getElementById('m-nombre').value = p.nombre;
       document.getElementById('m-sku').value = p.sku;
       document.getElementById('m-color').value = p.color;
-      document.getElementById('m-tipo').value = p.tipoPieza || '';
       document.getElementById('m-categoria').value = p.categoriaId || '';
       document.getElementById('m-talla').value = p.talla;
       document.getElementById('m-costo').value = p.precioCosto;
@@ -2843,7 +2844,6 @@
       const formData = new FormData();
       formData.append('sku', document.getElementById('m-sku').value);
       formData.append('nombre', document.getElementById('m-nombre').value);
-      formData.append('tipoPieza', document.getElementById('m-tipo').value);
       formData.append('categoriaId', document.getElementById('m-categoria').value);
       formData.append('talla', document.getElementById('m-talla').value);
       formData.append('color', document.getElementById('m-color').value);

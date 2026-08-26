@@ -81,7 +81,11 @@ public class PrendasController : ControllerBase
         if (dto.StockActual < 0 || dto.StockMinimo < 0 || dto.PrecioCosto < 0 || dto.PrecioVenta <= 0)
             return BadRequest(new { error = "Stock y precios deben tener valores válidos." });
 
-        if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
+        if (!dto.CategoriaId.HasValue)
+            return BadRequest(new { error = "Selecciona una categoría activa." });
+
+        var categoriaSeleccionada = await _context.CategoriasProductos.FirstOrDefaultAsync(c => c.Id == dto.CategoriaId && c.Activo);
+        if (categoriaSeleccionada == null)
             return BadRequest(new { error = "Selecciona una categoría activa." });
 
         var existeSku = await _context.Prendas.AnyAsync(p => p.Sku.ToLower() == dto.Sku.ToLower() && p.Activo);
@@ -112,7 +116,7 @@ public class PrendasController : ControllerBase
         {
             Sku = dto.Sku.Trim().ToUpper(),
             Nombre = dto.Nombre.Trim(),
-            TipoPieza = (TipoPieza)dto.TipoPieza,
+            TipoPieza = categoriaSeleccionada.TipoPieza,
             CategoriaId = dto.CategoriaId,
             Talla = (TallaPrenda)dto.Talla,
             Color = dto.Color.Trim(),
@@ -144,7 +148,11 @@ public class PrendasController : ControllerBase
         if (dto.StockActual < 0 || dto.StockMinimo < 0 || dto.PrecioCosto < 0 || dto.PrecioVenta <= 0)
             return BadRequest(new { error = "Stock y precios deben tener valores válidos." });
 
-        if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
+        if (!dto.CategoriaId.HasValue)
+            return BadRequest(new { error = "Selecciona una categoría activa." });
+
+        var categoriaSeleccionada = await _context.CategoriasProductos.FirstOrDefaultAsync(c => c.Id == dto.CategoriaId && c.Activo);
+        if (categoriaSeleccionada == null)
             return BadRequest(new { error = "Selecciona una categoría activa." });
 
         var existeSku = await _context.Prendas.AnyAsync(p => p.Id != id && p.Activo && p.Sku.ToLower() == dto.Sku.ToLower());
@@ -153,7 +161,7 @@ public class PrendasController : ControllerBase
 
         prenda.Sku = dto.Sku.Trim().ToUpper();
         prenda.Nombre = dto.Nombre.Trim();
-        prenda.TipoPieza = (TipoPieza)dto.TipoPieza;
+        prenda.TipoPieza = categoriaSeleccionada.TipoPieza;
         prenda.CategoriaId = dto.CategoriaId;
         prenda.Talla = (TallaPrenda)dto.Talla;
         prenda.Color = dto.Color.Trim();
@@ -308,7 +316,7 @@ public class CrearPrendaFormDto
 {
     public string Sku { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
-    public int TipoPieza { get; set; }
+    // TipoPieza ya no se recibe del formulario: se deriva de la Categoria seleccionada en el backend.
     public int? CategoriaId { get; set; }
     public int Talla { get; set; }
     public string Color { get; set; } = string.Empty;

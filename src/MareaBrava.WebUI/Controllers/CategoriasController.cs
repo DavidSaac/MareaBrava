@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MareaBrava.Domain.Entities;
+using MareaBrava.Domain.Enums;
 using MareaBrava.Infrastructure.Data;
 
 namespace MareaBrava.WebUI.Controllers;
@@ -35,7 +36,7 @@ public class CategoriasController : ControllerBase
     {
         var categorias = await _context.CategoriasProductos
             .OrderBy(c => c.Nombre)
-            .Select(c => new { c.Id, c.Nombre, c.Activo, prendasActivas = c.Prendas.Count(p => p.Activo) })
+            .Select(c => new { c.Id, c.Nombre, c.Activo, c.TipoPieza, prendasActivas = c.Prendas.Count(p => p.Activo) })
             .ToListAsync();
 
         return Ok(categorias);
@@ -49,13 +50,16 @@ public class CategoriasController : ControllerBase
         if (string.IsNullOrWhiteSpace(nombre) || nombre.Length > 100)
             return BadRequest(new { error = "El nombre debe tener entre 1 y 100 caracteres." });
 
+        if (!Enum.IsDefined(typeof(TipoPieza), request.TipoPieza))
+            return BadRequest(new { error = "Selecciona un tipo de pieza válido para la categoría." });
+
         if (await _context.CategoriasProductos.AnyAsync(c => c.Nombre.ToLower() == nombre.ToLower()))
             return Conflict(new { error = "Ya existe una categoría con ese nombre." });
 
-        var categoria = new CategoriaProducto { Nombre = nombre, Activo = true };
+        var categoria = new CategoriaProducto { Nombre = nombre, Activo = true, TipoPieza = (TipoPieza)request.TipoPieza };
         _context.CategoriasProductos.Add(categoria);
         await _context.SaveChangesAsync();
-        return Ok(new { categoria.Id, categoria.Nombre, categoria.Activo });
+        return Ok(new { categoria.Id, categoria.Nombre, categoria.Activo, categoria.TipoPieza });
     }
 
     [HttpPatch("{id}/estado")]
@@ -75,4 +79,4 @@ public class CategoriasController : ControllerBase
     }
 }
 
-public record CategoriaRequest(string? Nombre);
+public record CategoriaRequest(string? Nombre, int TipoPieza);

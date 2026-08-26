@@ -109,6 +109,11 @@ public static class DbInitializer
         if (columns.Count == 0)
             await context.Database.ExecuteSqlRawAsync("ALTER TABLE Prendas ADD COLUMN CategoriaId INTEGER NULL;");
 
+        // Columna TipoPieza en CategoriasProductos: nuevo, valor por defecto Accesorio (5) para categorías ya existentes sin mapeo conocido.
+        var categoriaTipoPiezaColumns = await context.Database.SqlQueryRaw<string>("SELECT name AS Value FROM pragma_table_info('CategoriasProductos') WHERE name = 'TipoPieza'").ToListAsync();
+        if (categoriaTipoPiezaColumns.Count == 0)
+            await context.Database.ExecuteSqlRawAsync($"ALTER TABLE CategoriasProductos ADD COLUMN TipoPieza INTEGER NOT NULL DEFAULT {(int)TipoPieza.Accesorio};");
+
         var categorias = new[]
         {
             "Trajes Completos (1 Pieza)",
@@ -128,6 +133,13 @@ public static class DbInitializer
         await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Tops Individuales') WHERE CategoriaId IS NULL AND TipoPieza = 3;");
         await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Bottoms Individuales') WHERE CategoriaId IS NULL AND TipoPieza = 4;");
         await context.Database.ExecuteSqlRawAsync("UPDATE Prendas SET CategoriaId = (SELECT Id FROM CategoriasProductos WHERE Nombre = 'Pareos y Accesorios') WHERE CategoriaId IS NULL AND TipoPieza = 5;");
+
+        // Correspondencia fija TipoPieza <-> categorías semilla (no toca nombres/IDs ni otras categorías creadas por el Admin).
+        await context.Database.ExecuteSqlRawAsync($"UPDATE CategoriasProductos SET TipoPieza = {(int)TipoPieza.UnaPieza} WHERE Nombre = 'Trajes Completos (1 Pieza)';");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE CategoriasProductos SET TipoPieza = {(int)TipoPieza.DosPiezas} WHERE Nombre = 'Bikinis (2 Piezas)';");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE CategoriasProductos SET TipoPieza = {(int)TipoPieza.TopIndividual} WHERE Nombre = 'Tops Individuales';");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE CategoriasProductos SET TipoPieza = {(int)TipoPieza.BottomIndividual} WHERE Nombre = 'Bottoms Individuales';");
+        await context.Database.ExecuteSqlRawAsync($"UPDATE CategoriasProductos SET TipoPieza = {(int)TipoPieza.Accesorio} WHERE Nombre = 'Pareos y Accesorios';");
     }
 
     private static async Task<int> GetCategoryIdAsync(MareaBravaDbContext context, string name)
