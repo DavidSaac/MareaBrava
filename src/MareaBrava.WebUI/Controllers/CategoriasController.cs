@@ -50,13 +50,17 @@ public class CategoriasController : ControllerBase
         if (string.IsNullOrWhiteSpace(nombre) || nombre.Length > 100)
             return BadRequest(new { error = "El nombre debe tener entre 1 y 100 caracteres." });
 
-        if (!Enum.IsDefined(typeof(TipoPieza), request.TipoPieza))
-            return BadRequest(new { error = "Selecciona un tipo de pieza válido para la categoría." });
-
         if (await _context.CategoriasProductos.AnyAsync(c => c.Nombre.ToLower() == nombre.ToLower()))
             return Conflict(new { error = "Ya existe una categoría con ese nombre." });
 
-        var categoria = new CategoriaProducto { Nombre = nombre, Activo = true, TipoPieza = (TipoPieza)request.TipoPieza };
+        var categoria = new CategoriaProducto
+        {
+            Nombre = nombre,
+            Activo = true,
+            TipoPieza = request.TipoPieza is int tipoPieza && Enum.IsDefined(typeof(TipoPieza), tipoPieza)
+                ? (TipoPieza)tipoPieza
+                : TipoPieza.Accesorio
+        };
         _context.CategoriasProductos.Add(categoria);
         await _context.SaveChangesAsync();
         return Ok(new { categoria.Id, categoria.Nombre, categoria.Activo, categoria.TipoPieza });
@@ -79,4 +83,4 @@ public class CategoriasController : ControllerBase
     }
 }
 
-public record CategoriaRequest(string? Nombre, int TipoPieza);
+public record CategoriaRequest(string? Nombre, int? TipoPieza);

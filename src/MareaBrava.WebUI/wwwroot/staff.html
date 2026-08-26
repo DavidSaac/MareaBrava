@@ -872,16 +872,6 @@
             <i class="fa-solid fa-plus"></i><span>Añadir</span>
           </button>
         </div>
-        <div>
-          <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Tipo de pieza (configuración interna, no se muestra al crear un producto)</label>
-          <select id="categoria-tipo-pieza" required class="w-full border-2 border-slate-200 rounded-xl p-2.5 text-sm font-semibold bg-white">
-            <option value="1">Traje Completo (1 Pieza)</option>
-            <option value="2">Bikini (2 Piezas)</option>
-            <option value="3">Top Individual</option>
-            <option value="4">Bottom Individual</option>
-            <option value="5" selected>Pareo / Accesorio</option>
-          </select>
-        </div>
       </form>
 
       <div>
@@ -1283,11 +1273,10 @@
     async function crearCategoria(e) {
       e.preventDefault();
       const input = document.getElementById('categoria-nombre');
-      const tipoPiezaSelect = document.getElementById('categoria-tipo-pieza');
       const res = await fetch('/api/categorias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: input.value.trim(), tipoPieza: Number(tipoPiezaSelect.value) })
+        body: JSON.stringify({ nombre: input.value.trim() })
       });
       if (!res.ok) {
         const error = await res.json();
@@ -1296,7 +1285,6 @@
       }
 
       input.value = '';
-      tipoPiezaSelect.value = '5';
       await cargarCategorias();
       await cargarCategoriasAdmin();
       await cargarDatos();
