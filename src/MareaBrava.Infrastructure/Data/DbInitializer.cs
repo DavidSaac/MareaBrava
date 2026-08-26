@@ -18,64 +18,7 @@ public static class DbInitializer
         // Los usuarios Demo existentes (si los hay) no se tocan aquí; se desactivan manualmente cuando corresponda.
         await SeedInitialAdminAsync(context);
 
-        // 3. Sembrar Prendas iniciales si está vacío
-        if (!await context.Prendas.AnyAsync())
-        {
-            await context.Prendas.AddRangeAsync(
-                new Prenda
-                {
-                    Sku = "MB-800101",
-                    Nombre = "Bikini Sunset Coral (Top + Bottom)",
-                    Descripcion = "Traje de baño de 2 piezas elaborado con tela de secado rápido y protección UV.",
-                    TipoPieza = TipoPieza.DosPiezas,
-                    CategoriaId = await GetCategoryIdAsync(context, "Bikinis (2 Piezas)"),
-                    Talla = TallaPrenda.S,
-                    Color = "Coral",
-                    PrecioCosto = 180.00m,
-                    PrecioVenta = 549.00m,
-                    StockActual = 8,
-                    StockMinimo = 3,
-                    ImagenUrl = "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
-                    Activo = true,
-                    FechaCreacion = DateTime.UtcNow
-                },
-                new Prenda
-                {
-                    Sku = "MB-800102",
-                    Nombre = "Top Deportivo Turquesa",
-                    Descripcion = "Top individual con soporte reforzado ideal para deportes acuáticos.",
-                    TipoPieza = TipoPieza.TopIndividual,
-                    CategoriaId = await GetCategoryIdAsync(context, "Tops Individuales"),
-                    Talla = TallaPrenda.M,
-                    Color = "Turquesa",
-                    PrecioCosto = 130.00m,
-                    PrecioVenta = 389.00m,
-                    StockActual = 12,
-                    StockMinimo = 3,
-                    ImagenUrl = "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
-                    Activo = true,
-                    FechaCreacion = DateTime.UtcNow
-                },
-                new Prenda
-                {
-                    Sku = "MB-800103",
-                    Nombre = "Traje Completo Deep Black",
-                    Descripcion = "Traje entero con escote elegante y ajuste estilizador.",
-                    TipoPieza = TipoPieza.UnaPieza,
-                    CategoriaId = await GetCategoryIdAsync(context, "Trajes Completos (1 Pieza)"),
-                    Talla = TallaPrenda.M,
-                    Color = "Negro",
-                    PrecioCosto = 220.00m,
-                    PrecioVenta = 699.00m,
-                    StockActual = 6,
-                    StockMinimo = 3,
-                    ImagenUrl = "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=600",
-                    Activo = true,
-                    FechaCreacion = DateTime.UtcNow
-                }
-            );
-            await context.SaveChangesAsync();
-        }
+        // Siembra de prendas Demo (MB-800101/102/103) deshabilitada: una BD nueva no debe crear productos de prueba.
     }
 
     private static async Task EnsureCategoriesSchemaAsync(MareaBravaDbContext context)
