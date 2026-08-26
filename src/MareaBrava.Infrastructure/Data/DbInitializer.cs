@@ -14,31 +14,9 @@ public static class DbInitializer
         await EnsureSalesAndReservationsSchemaAsync(context);
         await EnsureNullableSaleProductAsync(context);
 
-        // 2. Sembrar Usuarios si la tabla está vacía
-        if (!await context.Usuarios.AnyAsync())
-        {
-            await context.Usuarios.AddRangeAsync(
-                new Usuario
-                {
-                    NombreCompleto = "Ximena",
-                    Email = "ximena@mareabrava.com",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-                    Rol = RolUsuario.Administrador,
-                    Activo = true,
-                    FechaCreacion = DateTime.UtcNow
-                },
-                new Usuario
-                {
-                    NombreCompleto = "Elizabeth",
-                    Email = "elizabeth@mareabrava.com",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Cajero123!"),
-                    Rol = RolUsuario.Cajero,
-                    Activo = true,
-                    FechaCreacion = DateTime.UtcNow
-                }
-            );
-            await context.SaveChangesAsync();
-        }
+        // Siembra de usuarios Demo deshabilitada: producción crea cuentas reales vía UsuariosController.
+        // Los usuarios Demo existentes (si los hay) no se tocan aquí; se desactivan manualmente cuando corresponda.
+        await SeedInitialAdminAsync(context);
 
         // 3. Sembrar Prendas iniciales si está vacío
         if (!await context.Prendas.AnyAsync())
@@ -148,6 +126,30 @@ public static class DbInitializer
             .Where(c => c.Nombre == name)
             .Select(c => c.Id)
             .SingleAsync();
+    }
+
+    // Crea el primer Administrador real solo si Usuarios está vacía; credenciales exclusivamente por variables de entorno.
+    private static async Task SeedInitialAdminAsync(MareaBravaDbContext context)
+    {
+        if (await context.Usuarios.AnyAsync())
+            return;
+
+        var email = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL");
+        var password = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD");
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            return;
+
+        await context.Usuarios.AddAsync(new Usuario
+        {
+            NombreCompleto = "Administrador",
+            Email = email.Trim().ToLowerInvariant(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Rol = RolUsuario.Administrador,
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
     }
 
     private static async Task EnsureSalesAndReservationsSchemaAsync(MareaBravaDbContext context)

@@ -124,21 +124,26 @@
     }
     
     @media print {
-      body * {
-        visibility: hidden !important;
+      html,
+      body {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
       }
-      body.modo-impresion-ticket #ticket-impresion-contenedor,
-      body.modo-impresion-ticket #ticket-impresion-contenedor * {
-        visibility: visible !important;
+      body.modo-impresion-ticket > *:not(#ticket-impresion-contenedor),
+      body.modo-impresion-etiquetas > *:not(#contenedor-etiquetas-impresion) {
+        display: none !important;
       }
       body.modo-impresion-ticket #ticket-impresion-contenedor {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+        visibility: visible !important;
+        position: static !important;
         width: 80mm !important;
+        max-width: 80mm !important;
+        box-sizing: border-box !important;
         display: block !important;
         margin: 0 !important;
-        padding: 5px !important;
+        padding: 3mm !important;
       }
 
       @page {
@@ -172,7 +177,6 @@
           <span>☼</span><span>MAREA BRAVA</span><span>☼</span>
         </div>
         <h2 class="font-serif font-black text-3xl text-slate-900">Portal de Trabajo</h2>
-        <p class="text-xs text-slate-500 font-medium">Ingresa para operar Caja POS o Administrar la Boutique</p>
       </div>
 
       <form id="form-login" onsubmit="ejecutarLogin(event)" class="space-y-4 text-sm font-semibold">
@@ -189,19 +193,6 @@
           Entrar al Sistema
         </button>
       </form>
-
-      <!-- Accesos Rápidos Demo -->
-      <div class="border-t pt-4 space-y-2 text-xs">
-        <p class="text-center font-bold text-slate-400 uppercase tracking-wider">Accesos Rápidos Demo:</p>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="autocompletarLogin('ximena@mareabrava.com', 'Admin123!')" class="p-2.5 rounded-xl bg-pink-50 text-brand-magenta border border-pink-200 font-bold hover:bg-pink-100 transition">
-            👑 Ximena (Admin)
-          </button>
-          <button type="button" onclick="autocompletarLogin('elizabeth@mareabrava.com', 'Cajero123!')" class="p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100 transition">
-            🏷️ Elizabeth (Staff)
-          </button>
-        </div>
-      </div>
 
       <div class="text-center pt-2">
         <a href="/" class="text-xs text-slate-500 hover:text-brand-magenta font-bold flex items-center justify-center gap-1.5 transition">
@@ -1162,11 +1153,6 @@
       }
     }
 
-    function autocompletarLogin(email, pass) {
-      document.getElementById('login-email').value = email;
-      document.getElementById('login-password').value = pass;
-    }
-
     async function ejecutarLogin(e) {
       e.preventDefault();
       const correo = document.getElementById('login-email').value;
@@ -1482,9 +1468,9 @@
       });
 
       const ventasEl = document.getElementById('resumen-ventas-diario');
-      const diasVentas = Object.keys(ventasPorDia).sort().reverse();
-      ventasEl.innerHTML = diasVentas.length ? diasVentas.map(dia => {
-        const resumen = ventasPorDia[dia];
+      const dias = [...new Set([...Object.keys(ventasPorDia), ...Object.keys(gastosPorDia)])].sort().reverse();
+      ventasEl.innerHTML = dias.length ? dias.map(dia => {
+        const resumen = ventasPorDia[dia] || { total: 0, piezas: 0, modelos: {} };
         const modelos = Object.entries(resumen.modelos).map(([modelo, cantidad]) => `${modelo} (${cantidad})`).join(', ');
         return `<div class="p-3 rounded-2xl bg-pink-50/60 border border-pink-100">
           <div class="flex justify-between gap-3 font-black text-slate-800"><span class="capitalize">${formatoDiaMexico(dia)}</span><span class="text-brand-magenta">${formatoMXN(resumen.total)}</span></div>
@@ -1493,9 +1479,8 @@
       }).join('') : '<p class="text-sm text-slate-400 py-3">No hay ventas en el periodo seleccionado.</p>';
 
       const gastosEl = document.getElementById('resumen-gastos-diario');
-      const diasGastos = Object.keys(gastosPorDia).sort().reverse();
-      gastosEl.innerHTML = diasGastos.length ? diasGastos.map(dia => {
-        const resumen = gastosPorDia[dia];
+      gastosEl.innerHTML = dias.length ? dias.map(dia => {
+        const resumen = gastosPorDia[dia] || { total: 0, conceptos: [] };
         return `<div class="p-3 rounded-2xl bg-rose-50/60 border border-rose-100">
           <div class="flex justify-between gap-3 font-black text-slate-800"><span class="capitalize">${formatoDiaMexico(dia)}</span><span class="text-rose-700">${formatoMXN(resumen.total)}</span></div>
           <p class="text-xs text-slate-600 mt-1">${escHtml(resumen.conceptos.join(' · '))}</p>
@@ -1653,6 +1638,37 @@
     }
 
     // ================= FUNCIONES DE IMPRESIÓN =================
+    function iniciarImpresion(modo) {
+      const mediaPrint = window.matchMedia('print');
+      let finalizado = false;
+
+      const limpiarModoImpresion = () => {
+        if (finalizado) return;
+        finalizado = true;
+        document.body.classList.remove(modo);
+        window.removeEventListener('afterprint', limpiarModoImpresion);
+        if (mediaPrint.removeEventListener) {
+          mediaPrint.removeEventListener('change', manejarCambioMedia);
+        } else {
+          mediaPrint.removeListener(manejarCambioMedia);
+        }
+      };
+      const manejarCambioMedia = evento => {
+        if (!evento.matches) limpiarModoImpresion();
+      };
+
+      window.addEventListener('afterprint', limpiarModoImpresion);
+      if (mediaPrint.addEventListener) {
+        mediaPrint.addEventListener('change', manejarCambioMedia);
+      } else {
+        mediaPrint.addListener(manejarCambioMedia);
+      }
+
+      document.body.classList.add(modo);
+      void document.body.offsetHeight;
+      requestAnimationFrame(() => window.print());
+    }
+
     function reimprimirTicketVenta(ventaId) {
       const v = historialVentas.find(item => item.id === ventaId);
       if (!v) return;
@@ -1672,25 +1688,23 @@
         <div class="py-2 space-y-1 text-[11px] border-b border-black">
           ${(v.lineas || []).map(l => `
             <div class="flex justify-between">
-              <span>${l.cantidad}x ${l.nombre} (${tallasMap[l.talla] || 'M'})</span>
+              <span>${l.cantidad}x ${l.nombre} (${tallasMap[l.talla] || 'M'})<br><small>${formatoMXN(l.precioUnitario)} c/u</small></span>
               <span>${formatoMXN(l.subtotal)}</span>
             </div>
           `).join('')}
         </div>
-        <div class="py-2 flex justify-between font-bold text-xs border-b border-black">
-          <span>TOTAL:</span>
-          <span>${formatoMXN(v.total)}</span>
+        <div class="py-2 space-y-1 text-[11px] border-b border-black">
+          <div class="flex justify-between"><span>SUBTOTAL:</span><span>${formatoMXN(v.subtotal)}</span></div>
+          ${v.descuentoPorcentaje > 0 ? `<div class="flex justify-between text-[11px]"><span>DESCUENTO (${v.descuentoPorcentaje}%):</span><span>-${formatoMXN(v.descuentoMonto)}</span></div>` : ''}
+          <div class="flex justify-between font-bold text-xs"><span>TOTAL:</span><span>${formatoMXN(v.total)}</span></div>
         </div>
-        ${v.descuentoPorcentaje > 0 ? `<div class="flex justify-between text-[11px]"><span>DESCUENTO (${v.descuentoPorcentaje}%):</span><span>-${formatoMXN(v.descuentoMonto)}</span></div>` : ''}
         ${v.metodoPago === 1 ? `<div class="py-2 space-y-1 text-[11px] border-b border-black"><div class="flex justify-between"><span>EFECTIVO RECIBIDO:</span><span>${formatoMXN(v.efectivoRecibido)}</span></div><div class="flex justify-between font-bold"><span>CAMBIO:</span><span>${formatoMXN(v.cambio)}</span></div></div>` : ''}
         <div class="pt-3 text-center text-[10px]">
           <p>¡Gracias por tu compra en Marea Brava!</p>
         </div>
       `;
 
-      document.body.className = 'modo-impresion-ticket';
-      window.print();
-      document.body.className = '';
+      iniciarImpresion('modo-impresion-ticket');
     }
 
     function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0, descuento = 0, subtotal = total) {
@@ -1709,16 +1723,16 @@
         <div class="py-2 space-y-1 text-[11px] border-b border-black">
           ${lineas.map(l => `
             <div class="flex justify-between">
-              <span>${l.cantidad}x ${l.nombre} (${l.talla})</span>
+              <span>${l.cantidad}x ${l.nombre} (${l.talla})<br><small>${formatoMXN(l.precio)} c/u</small></span>
               <span>${formatoMXN(l.precio * l.cantidad)}</span>
             </div>
           `).join('')}
         </div>
-        <div class="py-2 flex justify-between font-bold text-xs border-b border-black">
-          <span>TOTAL:</span>
-          <span>${formatoMXN(total)}</span>
+        <div class="py-2 space-y-1 text-[11px] border-b border-black">
+          <div class="flex justify-between"><span>SUBTOTAL:</span><span>${formatoMXN(subtotal)}</span></div>
+          ${descuento > 0 ? `<div class="flex justify-between"><span>DESCUENTO (${descuento}%):</span><span>-${formatoMXN(subtotal - total)}</span></div>` : ''}
+          <div class="flex justify-between font-bold text-xs"><span>TOTAL:</span><span>${formatoMXN(total)}</span></div>
         </div>
-        ${descuento > 0 ? `<div class="flex justify-between text-[11px]"><span>DESCUENTO (${descuento}%):</span><span>-${formatoMXN(subtotal - total)}</span></div>` : ''}
         ${metodoPagoPOS === 1 ? `
           <div class="py-2 space-y-1 text-[11px] border-b border-black">
             <div class="flex justify-between"><span>EFECTIVO RECIBIDO:</span><span>${formatoMXN(efectivoRecibido)}</span></div>
@@ -1730,9 +1744,7 @@
         </div>
       `;
 
-      document.body.className = 'modo-impresion-ticket';
-      window.print();
-      document.body.className = '';
+      iniciarImpresion('modo-impresion-ticket');
     }
 
     function ejecutarImpresionEtiquetas() {
@@ -1744,9 +1756,7 @@
         </div>
       `;
 
-      document.body.className = 'modo-impresion-etiquetas';
-      window.print();
-      document.body.className = '';
+      iniciarImpresion('modo-impresion-etiquetas');
     }
 
     async function cancelarVenta(id, folio) {
@@ -2082,9 +2092,24 @@
       await forzarDescargaArchivo(p.imagenUrl, nombreArchivo);
     }
 
+    // Fotos propias del sistema son rutas relativas (/uploads/...); las de prueba (Unsplash, etc.) son absolutas.
+    function esFotoExterna(url) {
+      return /^https?:\/\//i.test(url) && !url.startsWith(window.location.origin);
+    }
+
     async function forzarDescargaArchivo(url, nombreSugerido) {
+      if (esFotoExterna(url)) {
+        // El navegador bloquea la descarga forzada de imágenes de otro origen (CORS) y el atributo
+        // "download" se ignora en ese caso; es una limitación del navegador, no un bug a "parchear".
+        console.warn(`"${nombreSugerido}" usa una fotografía externa de datos de prueba (${url}). No se puede forzar su descarga por restricciones de CORS del navegador; se abrirá en una pestaña nueva.`);
+        alert(`"${nombreSugerido}" es una fotografía de prueba alojada externamente (no es un archivo propio de Marea Brava). El navegador no permite descargarla automáticamente por CORS; se abrirá en una pestaña para que la guardes manualmente si la necesitas.`);
+        window.open(url, '_blank', 'noopener');
+        return;
+      }
+
       try {
         const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const blob = await resp.blob();
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2095,11 +2120,8 @@
         document.body.removeChild(a);
         window.URL.revokeObjectURL(blobUrl);
       } catch (err) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.download = nombreSugerido;
-        a.click();
+        console.error(`No se pudo descargar la fotografía "${nombreSugerido}" desde ${url}:`, err);
+        alert(`No se pudo descargar "${nombreSugerido}". La fotografía no está disponible en el servidor.`);
       }
     }
 
@@ -2272,9 +2294,7 @@
             </div>
           `;
 
-          document.body.className = 'modo-impresion-ticket';
-          window.print();
-          document.body.className = '';
+          iniciarImpresion('modo-impresion-ticket');
 
           await verificarEstadoTurnoCaja();
           alert('✅ Turno cerrado y ticket de corte generado exitosamente.');

@@ -257,29 +257,100 @@ public class PrendasController : ControllerBase
         var prendas = await query.ToListAsync();
 
         if (!prendas.Any())
-            return NotFound(new { error = "No hay fotografías disponibles para los filtros seleccionados." });
+            return NotFound(new { error = "No hay productos activos con fotografía asignada para los filtros seleccionados." });
+
+        // Clasifica cada prenda para poder informar con precisión qué se incluyó y qué no.
+        var encontradas = new List<(Prenda Prenda, string RutaFisica)>();
+        var externas = new List<string>();
+        var noEncontradas = new List<string>();
+
+        foreach (var p in prendas)
+        {
+            var imagenUrl = p.ImagenUrl!;
+
+            if (imagenUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                imagenUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                externas.Add(p.Sku);
+                continue;
+            }
+
+            var rutaRelativa = imagenUrl.TrimStart('/');
+            var rutaFisica = Path.Combine(_env.WebRootPath, rutaRelativa);
+
+            if (System.IO.File.Exists(rutaFisica))
+                encontradas.Add((p, rutaFisica));
+            else
+                noEncontradas.Add(p.Sku);
+        }
+
+        if (!encontradas.Any())
+        {
+            return NotFound(new
+            {
+                error = "No se encontró ninguna fotografía descargable para los productos seleccionados.",
+                fotosExternas = externas,
+                fotosNoEncontradasFisicamente = noEncontradas
+            });
+        }
 
         using (var memoryStream = new MemoryStream())
         {
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
             {
-                foreach (var p in prendas)
-                {
-                    var rutaRelativa = p.ImagenUrl!.TrimStart('/');
-                    var rutaFisica = Path.Combine(_env.WebRootPath, rutaRelativa);
+                var nombresUsados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                    if (System.IO.File.Exists(rutaFisica))
+                foreach (var (p, rutaFisica) in encontradas)
+                {
+                    var nombreBase = SanearNombreArchivo($"{p.Sku}_{p.Nombre}_{p.Color}");
+                    var nombreEnZip = $"{nombreBase}{Path.GetExtension(rutaFisica)}";
+
+                    // Evita colisiones de nombre dentro del ZIP (p. ej. mismo SKU/nombre/color).
+                    var sufijo = 2;
+                    while (!nombresUsados.Add(nombreEnZip))
+                        nombreEnZip = $"{nombreBase}_{sufijo++}{Path.GetExtension(rutaFisica)}";
+
+                    archive.CreateEntryFromFile(rutaFisica, nombreEnZip);
+                }
+
+                if (externas.Any() || noEncontradas.Any())
+                {
+                    var reporte = new StringBuilder();
+                    reporte.AppendLine("Fotografías NO incluidas en este ZIP:");
+                    if (externas.Any())
                     {
-                        var nombreEnZip = $"{p.Sku}_{p.Nombre.Replace(" ", "_")}_{p.Color}{Path.GetExtension(rutaFisica)}";
-                        archive.CreateEntryFromFile(rutaFisica, nombreEnZip);
+                        reporte.AppendLine();
+                        reporte.AppendLine("- URLs externas (datos de prueba, no son archivos propios del sistema):");
+                        foreach (var sku in externas) reporte.AppendLine($"  * {sku}");
                     }
+                    if (noEncontradas.Any())
+                    {
+                        reporte.AppendLine();
+                        reporte.AppendLine("- Registradas en el sistema pero el archivo físico ya no existe en el servidor:");
+                        foreach (var sku in noEncontradas) reporte.AppendLine($"  * {sku}");
+                    }
+
+                    var entradaReporte = archive.CreateEntry("FOTOS_NO_INCLUIDAS.txt");
+                    using var writer = new StreamWriter(entradaReporte.Open(), Encoding.UTF8);
+                    writer.Write(reporte.ToString());
                 }
             }
 
             memoryStream.Seek(0, SeekOrigin.Begin);
             var nombreArchivo = $"MareaBrava_Fotos_{(talla.HasValue && talla.Value > 0 ? $"Talla_{talla.Value}" : "CatalogoCompleto")}_{DateTime.Now:yyyyMMdd}.zip";
+
+            Response.Headers["X-Fotos-Incluidas"] = encontradas.Count.ToString();
+            Response.Headers["X-Fotos-Omitidas"] = (externas.Count + noEncontradas.Count).ToString();
+
             return File(memoryStream.ToArray(), "application/zip", nombreArchivo);
         }
+    }
+
+    private static string SanearNombreArchivo(string nombre)
+    {
+        var invalidos = Path.GetInvalidFileNameChars();
+        var limpio = new string(nombre.Select(c => invalidos.Contains(c) ? '_' : c).ToArray());
+        return limpio.Replace(" ", "_");
     }
 
     [HttpGet("exportar-excel")]
