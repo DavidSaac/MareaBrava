@@ -38,8 +38,90 @@
   </script>
   <style>
     body { background-color: #FAF6F0; color: #1E1B18; }
+    html { -webkit-text-size-adjust: 100%; }
+    input, button, select, textarea { -webkit-tap-highlight-color: transparent; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
     .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 6px; }
+    .teclado-numerico { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+    .teclado-numerico button { min-height: 42px; border: 1px solid #E2D6C3; border-radius: 0.75rem; background: #F8F4EE; color: #1E1B18; font-size: 1rem; font-weight: 800; touch-action: manipulation; }
+    .teclado-numerico button:active { background: #FBCFE8; transform: scale(0.97); }
+    .teclado-numerico .teclado-accion { background: #FFF1F2; color: #BE123C; }
+    .teclado-numerico .teclado-confirmar { background: #D80064; color: white; border-color: #D80064; }
+
+    @media (max-width: 1024px) {
+      #seccion-pos > div:first-child {
+        grid-template-columns: 1fr !important;
+      }
+
+      #seccion-pos .lg\:col-span-7,
+      #seccion-pos .lg\:col-span-5 {
+        grid-column: 1 / -1 !important;
+      }
+
+      #seccion-pos .sticky {
+        position: static !important;
+      }
+
+      #pantalla-dashboard header {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+
+      #pantalla-dashboard main {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 15px;
+      }
+
+      #pantalla-dashboard header {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+      }
+
+      #pantalla-dashboard header > div {
+        width: 100%;
+      }
+
+      #pantalla-dashboard header .flex-wrap {
+        justify-content: flex-start !important;
+      }
+
+      #pantalla-dashboard .rounded-3xl,
+      #modal-input-accion .rounded-3xl,
+      #modal-categorias .rounded-3xl,
+      #modal-prenda .rounded-3xl {
+        border-radius: 1.25rem !important;
+      }
+
+      #pantalla-dashboard button,
+      #pantalla-dashboard input,
+      #pantalla-dashboard select,
+      #modal-input-accion input,
+      #modal-input-accion button,
+      #modal-categorias input,
+      #modal-categorias button {
+        min-height: 44px;
+      }
+
+      #modal-input-accion .max-w-md,
+      #modal-categorias .max-w-lg,
+      #modal-prenda .max-w-5xl {
+        max-width: calc(100vw - 1rem) !important;
+      }
+
+      #sugerencias-pos {
+        max-height: 240px;
+        overflow-y: auto;
+      }
+    }
     
     @media print {
       body * {
@@ -57,6 +139,11 @@
         display: block !important;
         margin: 0 !important;
         padding: 5px !important;
+      }
+
+      @page {
+        size: 80mm auto;
+        margin: 0;
       }
 
       body.modo-impresion-etiquetas #contenedor-etiquetas-impresion,
@@ -175,6 +262,7 @@
         <div class="text-right">
           <p id="staff-nombre" class="font-bold text-slate-800"></p>
           <p id="staff-rol" class="font-semibold"></p>
+          <p id="reloj-marea" class="text-[11px] font-bold text-slate-400"></p>
         </div>
         
         <button onclick="cerrarSesion()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
@@ -207,6 +295,7 @@
           <div class="relative">
             <input type="text" id="filtro-pos" oninput="filtrarPOS()" placeholder="Buscar prenda o escanear código SKU" class="w-full bg-white border-2 border-brand-borderCream rounded-2xl p-4 pl-5 pr-12 text-base font-semibold focus:outline-brand-magenta shadow-sm" autofocus />
             <i class="fa-solid fa-barcode absolute right-4 top-4 text-slate-400 text-2xl"></i>
+            <div id="sugerencias-pos" class="hidden absolute left-0 right-0 top-full mt-2 z-30 bg-white border border-brand-borderCream rounded-2xl shadow-xl overflow-hidden"></div>
           </div>
           <div id="grid-pos-items" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[640px] overflow-y-auto custom-scroll pr-2"></div>
         </div>
@@ -221,6 +310,10 @@
                 <span>Subtotal:</span>
                 <span id="pos-subtotal">$0.00 MXN</span>
               </div>
+              <div id="pos-descuento-linea" class="flex justify-between hidden text-amber-700">
+                <span>Descuento:</span>
+                <span id="pos-descuento-valor">-$0.00 MXN</span>
+              </div>
               <div class="flex justify-between text-2xl font-black text-slate-900 pt-2 border-t border-slate-200">
                 <span>TOTAL:</span>
                 <span id="pos-total" class="text-brand-magenta font-black">$0.00 MXN</span>
@@ -232,6 +325,13 @@
                 <button onclick="seleccionarMetodo(1)" id="btn-met-1" class="py-2.5 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl shadow-sm">Efectivo</button>
                 <button onclick="seleccionarMetodo(2)" id="btn-met-2" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Tarjeta</button>
                 <button onclick="seleccionarMetodo(3)" id="btn-met-3" class="py-2.5 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Transf.</button>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[11px] font-black">
+                <button onclick="seleccionarDescuento(0)" id="descuento-0" class="py-2 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl">Sin descuento</button>
+                <button onclick="abrirModalDescuentoManual()" id="descuento-manual" class="py-2 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl">Descuento %</button>
+              </div>
+              <div class="grid grid-cols-1 gap-2">
+                <button onclick="abrirModalPiezaDesarmada()" class="py-2.5 bg-indigo-100 text-indigo-800 rounded-xl text-xs font-black"><i class="fa-solid fa-scissors mr-1"></i>Pieza desarmada</button>
               </div>
 
               <div id="caja-efectivo" class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 space-y-2 text-sm">
@@ -290,7 +390,7 @@
       </div>
 
       <!-- Métricas Financieras (Admin) -->
-      <div id="panel-metricas-admin" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div id="panel-metricas-admin" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <div class="bg-white p-5 rounded-3xl border border-brand-borderCream shadow-sm space-y-1">
           <p class="text-xs font-bold text-slate-400 uppercase">Total Ingresos</p>
           <h3 id="met-ingresos" class="text-2xl font-black text-slate-900">$0.00 MXN</h3>
@@ -315,6 +415,28 @@
           <p class="text-xs font-bold text-pink-800 uppercase">👙 Piezas Vendidas</p>
           <h3 id="met-piezas" class="text-2xl font-black text-pink-700">0</h3>
           <p class="text-[11px] text-pink-800 font-semibold">Prendas entregadas</p>
+        </div>
+        <div class="bg-amber-50/70 p-5 rounded-3xl border border-amber-200 shadow-sm space-y-1">
+          <p class="text-xs font-bold text-amber-800 uppercase">Descuentos</p>
+          <h3 id="met-descuentos" class="text-2xl font-black text-amber-700">$0.00 MXN</h3>
+          <p class="text-[11px] text-amber-800 font-semibold">Total descontado</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="bg-white rounded-3xl border border-brand-borderCream shadow-sm p-5 space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="font-serif font-black text-xl text-slate-900">Ventas por día</h3>
+            <span class="text-[11px] font-bold text-slate-400">Modelos y sumatorias</span>
+          </div>
+          <div id="resumen-ventas-diario" class="space-y-2 max-h-80 overflow-y-auto custom-scroll"></div>
+        </div>
+        <div class="bg-white rounded-3xl border border-brand-borderCream shadow-sm p-5 space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="font-serif font-black text-xl text-slate-900">Gastos por día</h3>
+            <span class="text-[11px] font-bold text-slate-400">Conceptos y sumatorias</span>
+          </div>
+          <div id="resumen-gastos-diario" class="space-y-2 max-h-80 overflow-y-auto custom-scroll"></div>
         </div>
       </div>
 
@@ -343,8 +465,8 @@
           </div>
 
           <div class="border-t pt-3 space-y-2">
-            <h5 class="text-xs font-black uppercase text-slate-400">🔥 Top 3 Bikinis Más Vendidos</h5>
-            <div id="top-productos-lista" class="space-y-1.5 text-xs"></div>
+            <h5 class="text-xs font-black uppercase text-slate-400">Modelos vendidos</h5>
+            <div id="top-productos-lista" class="space-y-1.5 text-xs max-h-48 overflow-y-auto custom-scroll"></div>
           </div>
         </div>
       </div>
@@ -775,12 +897,35 @@
     </div>
   </div>
 
+  <!-- ================= MODAL GENÉRICO PARA INPUTS DEL POS ================= -->
+  <div id="modal-input-accion" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-brand-borderCream">
+      <div class="flex justify-between items-center border-b pb-4">
+        <div>
+          <h3 id="modal-input-titulo" class="font-serif font-black text-2xl text-brand-magenta">Acción</h3>
+          <p id="modal-input-subtitulo" class="text-xs text-slate-500 font-medium">Completa los datos</p>
+        </div>
+        <button type="button" onclick="cerrarModalInputAccion()" class="text-slate-400 hover:text-slate-700 p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
+      </div>
+
+      <form id="form-modal-input-accion" class="space-y-4 text-sm font-semibold text-slate-700">
+        <div id="modal-input-fields" class="space-y-3"></div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t">
+          <button type="button" onclick="cerrarModalInputAccion()" class="px-4 py-2.5 font-bold text-slate-600 hover:bg-slate-100 rounded-xl text-xs">Cancelar</button>
+          <button type="submit" id="modal-input-submit" class="px-5 py-2.5 bg-brand-magenta hover:bg-brand-magentaHover text-white font-black rounded-xl text-xs shadow-md transition">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 
   <!-- ================= JAVASCRIPT & MOTOR OFFLINE ================= -->
   <script>
     let catalogo = [];
     let ticketPOS = [];
     let metodoPagoPOS = 1;
+    let descuentoPOS = 0;
     let usuarioStaff = JSON.parse(localStorage.getItem('mb_staff_user')) || null;
     let estadoTurnoCaja = null;
     let historialVentas = [];
@@ -910,9 +1055,17 @@
           cargarDatos();
           if (esAdmin()) cargarHistorialVentas();
           await verificarEstadoTurnoCaja();
+        } else {
+          const error = await res.json().catch(() => ({}));
+          console.warn('La sincronización fue rechazada y las ventas siguen guardadas localmente.', error);
+          if (res.status === 401 || res.status === 403) {
+            alert('La sesión expiró. Inicia sesión nuevamente para sincronizar las ventas pendientes.');
+          } else {
+            alert(error.error || 'No se pudieron sincronizar las ventas pendientes. Se conservarán en este equipo.');
+          }
         }
       } catch (e) {
-        console.warn("Fallo en sincronización.", e);
+        console.warn("Fallo de conexión durante sincronización. Las ventas siguen guardadas localmente.", e);
       }
     }
 
@@ -923,6 +1076,16 @@
     // ================= LÓGICA PRINCIPAL & ROLES =================
     function formatoMXN(monto) {
       return `$${Number(monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+    }
+
+    function escHtml(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[caracter]));
+    }
+
+    function escJsString(valor) {
+      return `'${String(valor ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]/g, ' ')}'`;
     }
 
     function esAdmin() {
@@ -1104,10 +1267,10 @@
         lista.innerHTML = categorias.map(c => `
           <div class="flex items-center justify-between gap-3 p-3 rounded-xl border ${c.activo ? 'border-slate-200 bg-slate-50' : 'border-rose-200 bg-rose-50/60 opacity-75'}">
             <div class="min-w-0">
-              <p class="font-bold text-slate-800 truncate">${c.nombre}</p>
+              <p class="font-bold text-slate-800 truncate">${escHtml(c.nombre)}</p>
               <p class="text-[11px] text-slate-500">${c.prendasActivas} modelo(s) activo(s) · ${c.activo ? 'Activa' : 'Inactiva'}</p>
             </div>
-            <button type="button" onclick="cambiarEstadoCategoria(${c.id}, '${c.nombre.replace(/'/g, "\\'")}', ${c.activo}, ${c.prendasActivas})" class="shrink-0 ${c.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2.5 rounded-xl transition" title="${c.activo ? 'Dar de baja' : 'Reactivar'}">
+            <button type="button" onclick="cambiarEstadoCategoria(${c.id}, ${escJsString(c.nombre)}, ${c.activo}, ${c.prendasActivas})" class="shrink-0 ${c.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2.5 rounded-xl transition" title="${c.activo ? 'Dar de baja' : 'Reactivar'}">
               <i class="fa-solid ${c.activo ? 'fa-trash-can' : 'fa-rotate-left'}"></i>
             </button>
           </div>
@@ -1219,6 +1382,7 @@
       const totalIngresos = activas.reduce((acc, v) => acc + v.total, 0);
       const totalCostos = activas.reduce((acc, v) => acc + (v.totalCosto || 0), 0);
       const totalPiezas = activas.reduce((acc, v) => acc + (v.totalPiezas || 0), 0);
+      const totalDescuentos = activas.reduce((acc, v) => acc + (v.descuentoMonto || 0), 0);
       const totalGastos = gastos.reduce((acc, gasto) => acc + gasto.monto, 0);
       const gananciaNeta = totalIngresos - totalCostos - totalGastos;
       const margen = totalIngresos > 0 ? ((gananciaNeta / totalIngresos) * 100).toFixed(1) : 0;
@@ -1230,6 +1394,8 @@
       document.getElementById('met-gastos').innerText = formatoMXN(totalGastos);
       document.getElementById('met-margen').innerText = `Margen estimado: ${margen}%`;
       document.getElementById('met-piezas').innerText = totalPiezas;
+      document.getElementById('met-descuentos').innerText = formatoMXN(totalDescuentos);
+      renderResumenDiario(activas, gastos);
 
       renderGraficaTendencia(totalIngresos, totalCostos, gananciaNeta);
 
@@ -1252,18 +1418,83 @@
         });
       });
 
-      const ranking = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const ranking = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]);
       const topEl = document.getElementById('top-productos-lista');
       if (!ranking.length) {
         topEl.innerHTML = '<p class="text-slate-400">Sin datos de productos.</p>';
       } else {
         topEl.innerHTML = ranking.map(([nom, cant], i) => `
           <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl font-bold">
-            <span class="truncate text-slate-800">${i+1}. ${nom}</span>
+            <span class="truncate text-slate-800">${i+1}. ${escHtml(nom)}</span>
             <span class="text-brand-magenta font-black shrink-0 ml-2">${cant} pzas</span>
           </div>
         `).join('');
       }
+    }
+
+    function obtenerClaveDiaMexico(fecha) {
+      const partes = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date(fecha));
+      const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+      return `${valores.year}-${valores.month}-${valores.day}`;
+    }
+
+    function formatoDiaMexico(clave) {
+      const [year, month, day] = clave.split('-').map(Number);
+      return new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+    }
+
+    function renderResumenDiario(ventas, gastos) {
+      const ventasPorDia = {};
+      ventas.forEach(venta => {
+        const dia = obtenerClaveDiaMexico(venta.fechaCreacion);
+        if (!ventasPorDia[dia]) ventasPorDia[dia] = { total: 0, piezas: 0, modelos: {} };
+        ventasPorDia[dia].total += venta.total || 0;
+        ventasPorDia[dia].piezas += venta.totalPiezas || 0;
+        (venta.lineas || []).forEach(linea => {
+          ventasPorDia[dia].modelos[linea.nombre] = (ventasPorDia[dia].modelos[linea.nombre] || 0) + linea.cantidad;
+        });
+      });
+
+      const gastosPorDia = {};
+      gastos.forEach(gasto => {
+        const dia = obtenerClaveDiaMexico(gasto.fechaGasto);
+        if (!gastosPorDia[dia]) gastosPorDia[dia] = { total: 0, conceptos: [] };
+        gastosPorDia[dia].total += gasto.monto || 0;
+        gastosPorDia[dia].conceptos.push(`${gasto.concepto}: ${formatoMXN(gasto.monto)}`);
+      });
+
+      const ventasEl = document.getElementById('resumen-ventas-diario');
+      const diasVentas = Object.keys(ventasPorDia).sort().reverse();
+      ventasEl.innerHTML = diasVentas.length ? diasVentas.map(dia => {
+        const resumen = ventasPorDia[dia];
+        const modelos = Object.entries(resumen.modelos).map(([modelo, cantidad]) => `${modelo} (${cantidad})`).join(', ');
+        return `<div class="p-3 rounded-2xl bg-pink-50/60 border border-pink-100">
+          <div class="flex justify-between gap-3 font-black text-slate-800"><span class="capitalize">${formatoDiaMexico(dia)}</span><span class="text-brand-magenta">${formatoMXN(resumen.total)}</span></div>
+          <p class="text-xs text-slate-600 mt-1">${resumen.piezas} pieza(s) · ${escHtml(modelos || 'Sin modelos')}</p>
+        </div>`;
+      }).join('') : '<p class="text-sm text-slate-400 py-3">No hay ventas en el periodo seleccionado.</p>';
+
+      const gastosEl = document.getElementById('resumen-gastos-diario');
+      const diasGastos = Object.keys(gastosPorDia).sort().reverse();
+      gastosEl.innerHTML = diasGastos.length ? diasGastos.map(dia => {
+        const resumen = gastosPorDia[dia];
+        return `<div class="p-3 rounded-2xl bg-rose-50/60 border border-rose-100">
+          <div class="flex justify-between gap-3 font-black text-slate-800"><span class="capitalize">${formatoDiaMexico(dia)}</span><span class="text-rose-700">${formatoMXN(resumen.total)}</span></div>
+          <p class="text-xs text-slate-600 mt-1">${escHtml(resumen.conceptos.join(' · '))}</p>
+        </div>`;
+      }).join('') : '<p class="text-sm text-slate-400 py-3">No hay gastos en el periodo seleccionado.</p>';
+    }
+
+    function actualizarRelojMarea() {
+      const reloj = document.getElementById('reloj-marea');
+      if (!reloj) return;
+      reloj.innerText = new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City', dateStyle: 'medium', timeStyle: 'medium'
+      }).format(new Date());
     }
 
     async function registrarGasto() {
@@ -1367,7 +1598,7 @@
       let ultimaFecha = '';
       tbody.innerHTML = items.map(v => {
         const fechaVenta = new Date(v.fechaCreacion);
-        const claveFecha = `${fechaVenta.getFullYear()}-${fechaVenta.getMonth()}-${fechaVenta.getDate()}`;
+        const claveFecha = `${fechaVenta.getFullYear()}-${fechaVenta.getMonth() + 1}-${fechaVenta.getDate()}`;
         const encabezadoFecha = claveFecha !== ultimaFecha
           ? `<tr class="bg-slate-100/80 border-y border-slate-200">
               <td colspan="8" class="px-3.5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-600">
@@ -1379,9 +1610,9 @@
         const fecha = new Date(v.fechaCreacion).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
         return encabezadoFecha + `
           <tr class="hover:bg-amber-50/40 transition ${!v.activo ? 'opacity-50 bg-rose-50/30' : ''}">
-            <td class="p-3.5 font-mono font-bold text-slate-900">${v.numeroTicket}</td>
-            <td class="p-3.5 text-xs text-slate-500 font-medium">${fecha}</td>
-            <td class="p-3.5 font-bold text-slate-700">${v.cajero}</td>
+            <td class="p-3.5 font-mono font-bold text-slate-900">${escHtml(v.numeroTicket)}</td>
+            <td class="p-3.5 text-xs text-slate-500 font-medium">${escHtml(fecha)}</td>
+            <td class="p-3.5 font-bold text-slate-700">${escHtml(v.cajero)}</td>
             <td class="p-3.5 text-center"><span class="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700">${metodosMap[v.metodoPago] || 'Efectivo'}</span></td>
             <td class="p-3.5 text-center font-bold text-slate-800">${v.totalPiezas || 1} pzas</td>
             <td class="p-3.5 text-right font-black text-slate-900">${formatoMXN(v.total)}</td>
@@ -1436,6 +1667,8 @@
           <span>TOTAL:</span>
           <span>${formatoMXN(v.total)}</span>
         </div>
+        ${v.descuentoPorcentaje > 0 ? `<div class="flex justify-between text-[11px]"><span>DESCUENTO (${v.descuentoPorcentaje}%):</span><span>-${formatoMXN(v.descuentoMonto)}</span></div>` : ''}
+        ${v.metodoPago === 1 ? `<div class="py-2 space-y-1 text-[11px] border-b border-black"><div class="flex justify-between"><span>EFECTIVO RECIBIDO:</span><span>${formatoMXN(v.efectivoRecibido)}</span></div><div class="flex justify-between font-bold"><span>CAMBIO:</span><span>${formatoMXN(v.cambio)}</span></div></div>` : ''}
         <div class="pt-3 text-center text-[10px]">
           <p>¡Gracias por tu compra en Marea Brava!</p>
         </div>
@@ -1446,7 +1679,7 @@
       document.body.className = '';
     }
 
-    function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0) {
+    function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0, descuento = 0, subtotal = total) {
       const cont = document.getElementById('ticket-impresion-contenedor');
       cont.innerHTML = `
         <div class="text-center pb-3 border-b border-black">
@@ -1471,6 +1704,7 @@
           <span>TOTAL:</span>
           <span>${formatoMXN(total)}</span>
         </div>
+        ${descuento > 0 ? `<div class="flex justify-between text-[11px]"><span>DESCUENTO (${descuento}%):</span><span>-${formatoMXN(subtotal - total)}</span></div>` : ''}
         ${metodoPagoPOS === 1 ? `
           <div class="py-2 space-y-1 text-[11px] border-b border-black">
             <div class="flex justify-between"><span>EFECTIVO RECIBIDO:</span><span>${formatoMXN(efectivoRecibido)}</span></div>
@@ -1537,8 +1771,8 @@
       const tbody = document.getElementById('tabla-usuarios-equipo');
       tbody.innerHTML = users.map(u => `
         <tr class="hover:bg-amber-50/40 transition ${!u.activo ? 'opacity-40 bg-slate-100' : ''}">
-          <td class="p-4 font-bold text-slate-900">${u.nombreCompleto}</td>
-          <td class="p-4 text-slate-600 font-mono text-xs">${u.email}</td>
+          <td class="p-4 font-bold text-slate-900">${escHtml(u.nombreCompleto)}</td>
+          <td class="p-4 text-slate-600 font-mono text-xs">${escHtml(u.email)}</td>
           <td class="p-4 text-center">
             ${u.rol === 1 
               ? '<span class="px-2.5 py-1 bg-pink-100 text-brand-magenta font-black rounded-lg text-xs">👑 Administrador</span>' 
@@ -1551,10 +1785,10 @@
           </td>
           <td class="p-4 text-center">
             <div class="inline-flex gap-2">
-              <button onclick="cambiarPasswordUsuario(${u.id}, '${u.nombreCompleto}')" title="Cambiar Contraseña" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl text-xs font-bold transition">
+              <button onclick="cambiarPasswordUsuario(${u.id}, ${escJsString(u.nombreCompleto)})" title="Cambiar Contraseña" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl text-xs font-bold transition">
                 <i class="fa-solid fa-key"></i>
               </button>
-              <button onclick="toggleEstadoUsuario(${u.id}, '${u.nombreCompleto}', ${u.activo})" title="${u.activo ? 'Desactivar acceso' : 'Reactivar acceso'}" class="${u.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2 rounded-xl text-xs font-bold transition">
+              <button onclick="toggleEstadoUsuario(${u.id}, ${escJsString(u.nombreCompleto)}, ${u.activo})" title="${u.activo ? 'Desactivar acceso' : 'Reactivar acceso'}" class="${u.activo ? 'bg-rose-100 hover:bg-rose-200 text-rose-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'} p-2 rounded-xl text-xs font-bold transition">
                 <i class="fa-solid ${u.activo ? 'fa-user-slash' : 'fa-user-check'}"></i>
               </button>
             </div>
@@ -1759,10 +1993,10 @@
           <td class="p-4 text-center">
             <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-14 h-16 object-cover rounded-xl mx-auto border shadow-sm" />
           </td>
-          <td class="p-4 font-bold text-slate-900 text-base">${p.nombre}</td>
+          <td class="p-4 font-bold text-slate-900 text-base">${escHtml(p.nombre)}</td>
           <td class="p-4 text-center"><span class="px-2.5 py-1 bg-slate-100 rounded-md font-extrabold text-xs text-slate-700">${tallasMap[p.talla] || 'M'}</span></td>
-          <td class="p-4 font-medium text-slate-700">${p.color}</td>
-          <td class="p-4 font-mono font-bold text-slate-800">${p.sku}</td>
+          <td class="p-4 font-medium text-slate-700">${escHtml(p.color)}</td>
+          <td class="p-4 font-mono font-bold text-slate-800">${escHtml(p.sku)}</td>
           <td class="p-4 text-right text-slate-500 font-semibold">${formatoMXN(p.precioCosto)}</td>
           <td class="p-4 text-right font-black text-slate-900 text-base">${formatoMXN(p.precioVenta)}</td>
           
@@ -2052,8 +2286,8 @@
           <div class="flex gap-4 items-center">
             <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-20 h-24 object-cover rounded-xl border shadow-sm shrink-0" />
             <div class="min-w-0">
-              <h4 class="font-bold text-slate-900 text-base truncate leading-tight">${p.nombre}</h4>
-              <p class="text-xs text-slate-500 mt-0.5">Talla: <strong>${tallasMap[p.talla]}</strong> | ${p.color}</p>
+              <h4 class="font-bold text-slate-900 text-base truncate leading-tight">${escHtml(p.nombre)}</h4>
+              <p class="text-xs text-slate-500 mt-0.5">Talla: <strong>${escHtml(tallasMap[p.talla])}</strong> | ${escHtml(p.color)}</p>
               <p class="font-black text-lg text-brand-magenta mt-1">${formatoMXN(p.precioVenta)}</p>
               <p class="text-xs ${p.stockActual > 3 ? 'text-emerald-700' : 'text-amber-700'} font-bold">
                 ● Stock: ${p.stockActual} disponibles
@@ -2110,34 +2344,54 @@
       const cont = document.getElementById('pos-ticket-lineas');
       const subtotalEl = document.getElementById('pos-subtotal');
       const totalEl = document.getElementById('pos-total');
+      const descuentoLinea = document.getElementById('pos-descuento-linea');
+      const descuentoValor = document.getElementById('pos-descuento-valor');
       const btnCobrar = document.getElementById('btn-cobrar-pos');
 
       if (!ticketPOS.length) {
         cont.innerHTML = '<p class="text-slate-400 text-center py-10 text-sm">Ticket vacío.</p>';
         subtotalEl.innerText = '$0.00 MXN';
         totalEl.innerText = '$0.00 MXN';
+        descuentoLinea.classList.add('hidden');
+        descuentoValor.innerText = '-$0.00 MXN';
         btnCobrar.disabled = true;
         calcularCambio();
         return;
       }
 
-      let total = 0;
+      let subtotal = 0;
       cont.innerHTML = ticketPOS.map((i, idx) => {
         const sub = i.precio * i.cantidad;
-        total += sub;
+        subtotal += sub;
         return `
           <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
             <div>
               <p class="font-bold text-slate-900 text-sm">${i.cantidad}x ${i.nombre} (${i.talla})</p>
               <p class="text-xs text-slate-400">${formatoMXN(i.precio)} c/u</p>
             </div>
-            <span class="font-black text-slate-900 text-sm">${formatoMXN(sub)}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900 text-sm">${formatoMXN(sub)}</span>
+              <button type="button" onclick="removerLineaTicket(${idx})" title="Quitar del ticket" class="w-7 h-7 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-black transition">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
 
-      subtotalEl.innerText = formatoMXN(total);
+      const descuento = subtotal * descuentoPOS / 100;
+      const total = subtotal - descuento;
+      subtotalEl.innerText = formatoMXN(subtotal);
       totalEl.innerText = formatoMXN(total);
+
+      if (descuento > 0) {
+        descuentoLinea.classList.remove('hidden');
+        descuentoValor.innerText = `-${formatoMXN(descuento)}`;
+      } else {
+        descuentoLinea.classList.add('hidden');
+        descuentoValor.innerText = '-$0.00 MXN';
+      }
+
       btnCobrar.disabled = false;
       calcularCambio();
     }
@@ -2155,8 +2409,185 @@
       document.getElementById('caja-efectivo').style.display = met === 1 ? 'block' : 'none';
     }
 
+    function seleccionarDescuento(porcentaje) {
+      descuentoPOS = porcentaje;
+      const sinDesc = document.getElementById('descuento-0');
+      const manual = document.getElementById('descuento-manual');
+
+      if (sinDesc) {
+        sinDesc.className = porcentaje === 0
+          ? 'py-2 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl'
+          : 'py-2 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl';
+      }
+
+      if (manual) {
+        manual.className = porcentaje > 0
+          ? 'py-2 border-2 border-brand-magenta bg-brand-magenta text-white rounded-xl'
+          : 'py-2 border-2 border-slate-200 bg-slate-50 text-slate-700 rounded-xl';
+        manual.innerText = porcentaje > 0 ? `Descuento ${porcentaje}%` : 'Descuento %';
+      }
+
+      renderTicket();
+    }
+
+    function abrirModalInputAccion({ titulo, subtitulo, submitText, campos, onSubmit }) {
+      const modal = document.getElementById('modal-input-accion');
+      const tituloEl = document.getElementById('modal-input-titulo');
+      const subtituloEl = document.getElementById('modal-input-subtitulo');
+      const fieldsEl = document.getElementById('modal-input-fields');
+      const submitEl = document.getElementById('modal-input-submit');
+      const form = document.getElementById('form-modal-input-accion');
+
+      tituloEl.innerText = titulo;
+      subtituloEl.innerText = subtitulo;
+      submitEl.innerText = submitText || 'Guardar';
+      fieldsEl.innerHTML = campos.map(campo => `
+        <div>
+          <label class="block mb-1.5 font-bold text-slate-700">${campo.label}</label>
+          <input
+            type="${campo.type === 'number' && campo.allowDecimal ? 'text' : (campo.type || 'text')}"
+            id="modal-field-${campo.name}"
+            inputmode="${campo.inputMode || (campo.type === 'number' ? 'decimal' : 'text')}"
+            autocomplete="off"
+            enterkeyhint="done"
+            ${campo.pattern ? `pattern="${campo.pattern}"` : ''}
+            ${campo.required ? 'required' : ''}
+            ${campo.min !== undefined ? `min="${campo.min}"` : ''}
+            ${campo.max !== undefined ? `max="${campo.max}"` : ''}
+            ${campo.step !== undefined ? `step="${campo.step}"` : ''}
+            value="${campo.value ?? ''}"
+            placeholder="${campo.placeholder || ''}"
+            class="w-full border-2 border-slate-200 rounded-xl p-3 focus:outline-brand-magenta"
+          />
+          ${campo.type === 'number' ? `
+            <div class="teclado-numerico mt-2" data-teclado-para="modal-field-${campo.name}">
+              <button type="button" data-tecla="1">1</button>
+              <button type="button" data-tecla="2">2</button>
+              <button type="button" data-tecla="3">3</button>
+              <button type="button" data-tecla="4">4</button>
+              <button type="button" data-tecla="5">5</button>
+              <button type="button" data-tecla="6">6</button>
+              <button type="button" data-tecla="7">7</button>
+              <button type="button" data-tecla="8">8</button>
+              <button type="button" data-tecla="9">9</button>
+              <button type="button" data-tecla="borrar" class="teclado-accion" aria-label="Borrar último número"><i class="fa-solid fa-delete-left"></i></button>
+              <button type="button" data-tecla="0">0</button>
+              <button type="button" data-tecla="${campo.allowDecimal ? '.' : 'limpiar'}" class="${campo.allowDecimal ? '' : 'teclado-accion'}">${campo.allowDecimal ? '.' : 'C'}</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
+      fieldsEl.querySelectorAll('[data-teclado-para]').forEach(teclado => {
+        teclado.addEventListener('click', event => {
+          const boton = event.target.closest('[data-tecla]');
+          if (!boton) return;
+
+          const input = document.getElementById(teclado.dataset.tecladoPara);
+          const tecla = boton.dataset.tecla;
+          input.focus();
+
+          if (tecla === 'borrar') {
+            input.value = input.value.slice(0, -1);
+          } else if (tecla === 'limpiar') {
+            input.value = '';
+          } else if (tecla === '.' && input.value.includes('.')) {
+            return;
+          } else if (input.dataset.tecladoEditado !== 'true') {
+            input.value = tecla === '.' ? '0.' : tecla;
+            input.dataset.tecladoEditado = 'true';
+          } else {
+            input.value += tecla;
+          }
+
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      });
+
+      form.onsubmit = (event) => {
+        event.preventDefault();
+        const values = {};
+        campos.forEach(campo => {
+          const input = document.getElementById(`modal-field-${campo.name}`);
+          values[campo.name] = campo.type === 'number' ? Number(input.value) : input.value.trim();
+        });
+        onSubmit(values);
+        cerrarModalInputAccion();
+      };
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      setTimeout(() => {
+        const primerInput = form.querySelector('input');
+        if (primerInput) primerInput.focus();
+      }, 80);
+    }
+
+    function cerrarModalInputAccion() {
+      const modal = document.getElementById('modal-input-accion');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function abrirModalDescuentoManual() {
+      const porcentajeActual = Number.isFinite(descuentoPOS) ? descuentoPOS : 0;
+      abrirModalInputAccion({
+        titulo: 'Descuento de Venta',
+        subtitulo: 'Escribe el porcentaje que quieres aplicar al ticket actual.',
+        submitText: 'Aplicar descuento',
+        campos: [{
+          name: 'porcentaje',
+          label: 'Porcentaje de descuento (%)',
+          type: 'number',
+          inputMode: 'numeric',
+          value: porcentajeActual > 0 ? porcentajeActual : 10,
+          min: 0,
+          max: 100,
+          step: 1,
+          allowDecimal: false,
+          placeholder: 'Ej. 15',
+          required: true
+        }],
+        onSubmit: ({ porcentaje }) => {
+          const valor = Number(porcentaje);
+          if (Number.isNaN(valor) || valor < 0 || valor > 100) {
+            alert('El porcentaje de descuento debe estar entre 0 y 100.');
+            return;
+          }
+          seleccionarDescuento(valor);
+        }
+      });
+    }
+
+    function abrirModalPiezaDesarmada() {
+      abrirModalInputAccion({
+        titulo: 'Pieza Desarmada',
+        subtitulo: 'Registra una pieza sin SKU para venta suelta.',
+        submitText: 'Agregar al ticket',
+        campos: [
+          { name: 'descripcion', label: 'Descripción', type: 'text', inputMode: 'text', value: '', placeholder: 'Ej: Top Bikini Coral', required: true },
+          { name: 'precio', label: 'Precio de venta', type: 'number', inputMode: 'decimal', value: 0, min: 0, step: 0.5, allowDecimal: true, placeholder: 'Ej. 299', required: true }
+        ],
+        onSubmit: ({ descripcion, precio }) => {
+          const precioNum = Number(precio);
+          if (!descripcion || !descripcion.trim()) {
+            alert('La descripción es obligatoria.');
+            return;
+          }
+          if (!Number.isFinite(precioNum) || precioNum <= 0) {
+            alert('Indica un precio válido mayor que cero.');
+            return;
+          }
+          ticketPOS.push({ prendaId: null, nombre: `${descripcion.trim()} (desarmada)`, talla: '-', precio: precioNum, cantidad: 1, generica: true });
+          renderTicket();
+        }
+      });
+    }
+
     function calcularCambio() {
-      const total = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+      const subtotal = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+      const total = subtotal - (subtotal * descuentoPOS / 100);
       const recibido = parseFloat(document.getElementById('pos-efectivo-recibido').value) || 0;
       const cambio = recibido - total;
       document.getElementById('pos-cambio').innerText = formatoMXN(cambio >= 0 ? cambio : 0);
@@ -2172,14 +2603,16 @@
       }
 
       const totalVenta = ticketPOS.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+      const descuentoMonto = Math.round(totalVenta * descuentoPOS) / 100;
+      const totalConDescuento = totalVenta - descuentoMonto;
       const lineasImpresion = [...ticketPOS];
       const efectivoRecibido = metodoPagoPOS === 1
         ? parseFloat(document.getElementById('pos-efectivo-recibido').value) || 0
         : 0;
-      const cambio = metodoPagoPOS === 1 ? efectivoRecibido - totalVenta : 0;
+      const cambio = metodoPagoPOS === 1 ? efectivoRecibido - totalConDescuento : 0;
 
-      if (metodoPagoPOS === 1 && efectivoRecibido < totalVenta) {
-        alert(`El efectivo recibido debe ser igual o mayor al total de ${formatoMXN(totalVenta)}.`);
+      if (metodoPagoPOS === 1 && efectivoRecibido < totalConDescuento) {
+        alert(`El efectivo recibido debe ser igual o mayor al total de ${formatoMXN(totalConDescuento)}.`);
         document.getElementById('pos-efectivo-recibido').focus();
         return;
       }
@@ -2189,7 +2622,10 @@
         const payload = {
           usuarioId: usuarioStaff ? usuarioStaff.id : 1,
           metodoPago: metodoPagoPOS,
-          lineas: ticketPOS.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad }))
+          descuentoPorcentaje: descuentoPOS,
+          efectivoRecibido,
+          esVentaDesarmada: ticketPOS.some(i => i.generica),
+          lineas: ticketPOS.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad, descripcion: i.generica ? i.nombre : null, precioUnitario: i.generica ? i.precio : 0 }))
         };
 
         try {
@@ -2201,10 +2637,18 @@
 
           if (res.ok) {
             const venta = await res.json();
-            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total, efectivoRecibido, cambio);
+            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total, efectivoRecibido, cambio, descuentoPOS, totalVenta);
             limpiarDespuesDeVenta();
             return;
           }
+
+          const error = await res.json().catch(() => ({}));
+          if (res.status === 401 || res.status === 403) {
+            alert('La sesión expiró. Inicia sesión nuevamente para registrar la venta.');
+          } else {
+            alert(error.error || 'El servidor rechazó la venta. No se guardó como offline.');
+          }
+          return;
         } catch (e) {
           console.warn("Fallo de red durante cobro. Pasando a contingencia local.", e);
         }
@@ -2218,9 +2662,12 @@
         folioTemporal: folioOffline,
         usuarioId: usuarioStaff ? usuarioStaff.id : 1,
         metodoPago: metodoPagoPOS,
-        totalEstimado: totalVenta,
+        descuentoPorcentaje: descuentoPOS,
+        efectivoRecibido,
+        esVentaDesarmada: ticketPOS.some(i => i.generica),
+        totalEstimado: totalConDescuento,
         fechaLocal: timestamp.toISOString(),
-        lineas: ticketPOS.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad }))
+        lineas: ticketPOS.map(i => ({ prendaId: i.prendaId, cantidad: i.cantidad, descripcion: i.generica ? i.nombre : null, precioUnitario: i.generica ? i.precio : 0 }))
       };
 
       ticketPOS.forEach(item => {
@@ -2230,13 +2677,15 @@
       await guardarCatalogoLocal(catalogo);
       await encolarVentaOffline(ventaLocal);
 
-      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalVenta, efectivoRecibido, cambio);
+      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalConDescuento, efectivoRecibido, cambio, descuentoPOS, totalVenta);
       limpiarDespuesDeVenta();
-      alert(`⚡ VENTA REGISTRADA FUERA DE LÍNEA\n\nFolio: ${folioOffline}\nTotal: ${formatoMXN(totalVenta)}\n\nLa venta se sincronizará automáticamente al volver internet.`);
+      alert(`⚡ VENTA REGISTRADA FUERA DE LÍNEA\n\nFolio: ${folioOffline}\nTotal: ${formatoMXN(totalConDescuento)}\n\nLa venta se sincronizará automáticamente al volver internet.`);
     }
 
     function limpiarDespuesDeVenta() {
       ticketPOS = [];
+      descuentoPOS = 0;
+      seleccionarDescuento(0);
       document.getElementById('pos-efectivo-recibido').value = '';
       renderTicket();
       renderPOS(catalogo);
@@ -2245,8 +2694,75 @@
 
     function filtrarPOS() {
       const q = document.getElementById('filtro-pos').value.toLowerCase();
-      renderPOS(catalogo.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
+      const coincidencias = catalogo.filter(p => p.stockActual > 0 && (
+        p.nombre.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q) ||
+        (p.color || '').toLowerCase().includes(q) ||
+        (p.categoriaNombre || '').toLowerCase().includes(q)
+      ));
+      renderPOS(coincidencias);
+      renderSugerenciasPOS(q, coincidencias);
     }
+
+    function renderSugerenciasPOS(termino, coincidencias) {
+      const sugerencias = document.getElementById('sugerencias-pos');
+      if (!termino.trim() || !coincidencias.length) {
+        sugerencias.classList.add('hidden');
+        sugerencias.innerHTML = '';
+        return;
+      }
+
+      sugerencias.innerHTML = coincidencias.slice(0, 8).map(p => `
+        <button type="button" onclick="seleccionarSugerenciaPOS(${p.id})" class="w-full text-left px-4 py-3 hover:bg-pink-50 border-b border-slate-100 last:border-b-0 flex items-center justify-between gap-3">
+          <span class="min-w-0"><strong class="block truncate text-slate-800">${escHtml(p.nombre)}</strong><small class="text-slate-500">${escHtml(p.sku)} · ${escHtml(p.color || '')}</small></span>
+          <span class="shrink-0 font-black text-brand-magenta">${formatoMXN(p.precioVenta)}</span>
+        </button>
+      `).join('');
+      sugerencias.classList.remove('hidden');
+    }
+
+    function seleccionarSugerenciaPOS(prendaId) {
+      const prenda = catalogo.find(p => p.id === prendaId && p.stockActual > 0);
+      if (!prenda) return;
+      const existente = ticketPOS.find(i => i.prendaId === prenda.id);
+      if (existente) {
+        if (existente.cantidad >= prenda.stockActual) return alert('No hay más stock disponible para este modelo.');
+        existente.cantidad += 1;
+      } else {
+        ticketPOS.push({ prendaId: prenda.id, nombre: prenda.nombre, talla: tallasMap[prenda.talla], precio: prenda.precioVenta, cantidad: 1 });
+      }
+      document.getElementById('filtro-pos').value = '';
+      document.getElementById('sugerencias-pos').classList.add('hidden');
+      renderTicket();
+      renderPOS(catalogo);
+    }
+
+    function removerLineaTicket(indice) {
+      if (indice < 0 || indice >= ticketPOS.length) return;
+      ticketPOS.splice(indice, 1);
+      renderTicket();
+    }
+
+    document.getElementById('filtro-pos').addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      const sku = event.currentTarget.value.trim().toLowerCase();
+      const coincidenciaExacta = catalogo.find(prenda => prenda.stockActual > 0 && prenda.sku.toLowerCase() === sku);
+      if (coincidenciaExacta) {
+        event.preventDefault();
+        seleccionarSugerenciaPOS(coincidenciaExacta.id);
+        return;
+      }
+      const primera = document.querySelector('#sugerencias-pos button');
+      if (primera) {
+        event.preventDefault();
+        primera.click();
+      }
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('#filtro-pos') && !event.target.closest('#sugerencias-pos'))
+        document.getElementById('sugerencias-pos').classList.add('hidden');
+    });
 
     // ================= CRUD PRENDAS (ADMIN) =================
     async function ajustarStockRapido(id, delta) {
@@ -2356,6 +2872,8 @@
       }
     }
 
+    actualizarRelojMarea();
+    setInterval(actualizarRelojMarea, 1000);
     inicializarVistaStaff();
   </script>
 </body>

@@ -77,6 +77,9 @@ public class PrendasController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Sku) || string.IsNullOrWhiteSpace(dto.Nombre))
             return BadRequest(new { error = "El SKU y Nombre son obligatorios." });
 
+        if (dto.StockActual < 0 || dto.StockMinimo < 0 || dto.PrecioCosto < 0 || dto.PrecioVenta <= 0)
+            return BadRequest(new { error = "Stock y precios deben tener valores válidos." });
+
         if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
             return BadRequest(new { error = "Selecciona una categoría activa." });
 
@@ -134,8 +137,18 @@ public class PrendasController : ControllerBase
         var prenda = await _context.Prendas.FindAsync(id);
         if (prenda == null || !prenda.Activo) return NotFound(new { error = "Prenda no encontrada." });
 
+        if (string.IsNullOrWhiteSpace(dto.Sku) || string.IsNullOrWhiteSpace(dto.Nombre))
+            return BadRequest(new { error = "El SKU y Nombre son obligatorios." });
+
+        if (dto.StockActual < 0 || dto.StockMinimo < 0 || dto.PrecioCosto < 0 || dto.PrecioVenta <= 0)
+            return BadRequest(new { error = "Stock y precios deben tener valores válidos." });
+
         if (!dto.CategoriaId.HasValue || !await _context.CategoriasProductos.AnyAsync(c => c.Id == dto.CategoriaId && c.Activo))
             return BadRequest(new { error = "Selecciona una categoría activa." });
+
+        var existeSku = await _context.Prendas.AnyAsync(p => p.Id != id && p.Activo && p.Sku.ToLower() == dto.Sku.ToLower());
+        if (existeSku)
+            return BadRequest(new { error = $"Ya existe una prenda activa con el SKU '{dto.Sku}'." });
 
         prenda.Sku = dto.Sku.Trim().ToUpper();
         prenda.Nombre = dto.Nombre.Trim();

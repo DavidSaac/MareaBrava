@@ -15,10 +15,12 @@ namespace MareaBrava.WebUI.Controllers;
 public class VentasController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;
+    private readonly ILogger<VentasController> _logger;
 
-    public VentasController(MareaBravaDbContext context)
+    public VentasController(MareaBravaDbContext context, ILogger<VentasController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -33,13 +35,19 @@ public class VentasController : ControllerBase
         if (!Enum.IsDefined(typeof(MetodoPago), dto.MetodoPago))
             return BadRequest(new { error = "El método de pago no es válido." });
 
+        if (dto.DescuentoPorcentaje < 0 || dto.DescuentoPorcentaje > 100)
+            return BadRequest(new { error = "El descuento debe estar entre 0 y 100%." });
+
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var usuarioId))
             return Unauthorized();
 
         if (!await _context.CortesCaja.AnyAsync(c => c.Abierto))
             return BadRequest(new { error = "No existe un turno de caja abierto." });
 
-        var prendaIds = dto.Lineas.Select(l => l.PrendaId).ToList();
+        if (dto.MetodoPago == (int)MetodoPago.Efectivo && dto.EfectivoRecibido < 0)
+            return BadRequest(new { error = "El efectivo recibido no puede ser negativo." });
+
+        var prendaIds = dto.Lineas.Where(l => l.PrendaId.HasValue).Select(l => l.PrendaId!.Value).ToList();
         var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
 
         decimal totalVenta = 0;
@@ -47,6 +55,21 @@ public class VentasController : ControllerBase
 
         foreach (var linea in dto.Lineas)
         {
+            if (!linea.PrendaId.HasValue)
+            {
+                if (!dto.EsVentaDesarmada || string.IsNullOrWhiteSpace(linea.Descripcion) || linea.PrecioUnitario <= 0)
+                    return BadRequest(new { error = "La pieza genérica requiere descripción, precio y venta desarmada." });
+
+                detalles.Add(new DetalleVenta
+                {
+                    Cantidad = linea.Cantidad,
+                    PrecioUnitario = linea.PrecioUnitario,
+                    Descripcion = linea.Descripcion.Trim()
+                });
+                totalVenta += linea.PrecioUnitario * linea.Cantidad;
+                continue;
+            }
+
             var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
             if (prenda == null || !prenda.Activo)
                 return BadRequest(new { error = $"La prenda con ID {linea.PrendaId} no existe o está inactiva." });
@@ -67,6 +90,11 @@ public class VentasController : ControllerBase
             detalles.Add(detalle);
         }
 
+        var descuentoMonto = decimal.Round(totalVenta * dto.DescuentoPorcentaje / 100m, 2);
+        var totalConDescuento = totalVenta - descuentoMonto;
+        var cambio = dto.MetodoPago == (int)MetodoPago.Efectivo
+            ? Math.Max(0, dto.EfectivoRecibido - totalConDescuento)
+            : 0;
         var consecutivo = await _context.Ventas.CountAsync() + 1;
         var numeroTicket = $"MB-{DateTime.UtcNow:yyyyMMdd}-{consecutivo:D4}";
 
@@ -75,7 +103,14 @@ public class VentasController : ControllerBase
             NumeroTicket = numeroTicket,
             UsuarioId = usuarioId,
             MetodoPago = (MetodoPago)dto.MetodoPago,
-            Total = totalVenta,
+            Subtotal = totalVenta,
+            DescuentoPorcentaje = dto.DescuentoPorcentaje,
+            DescuentoMonto = descuentoMonto,
+            Total = totalConDescuento,
+            EfectivoRecibido = dto.EfectivoRecibido,
+            Cambio = cambio,
+            EsVentaDesarmada = dto.EsVentaDesarmada,
+            NotaAdministrativa = dto.EsVentaDesarmada ? "Revisar y ajustar stock del conjunto por venta desarmada." : null,
             Detalles = detalles,
             Activo = true,
             FechaCreacion = DateTime.UtcNow
@@ -89,6 +124,11 @@ public class VentasController : ControllerBase
             venta.Id,
             venta.NumeroTicket,
             venta.Total,
+            venta.Subtotal,
+            venta.DescuentoMonto,
+            venta.EfectivoRecibido,
+            venta.Cambio,
+            venta.EsVentaDesarmada,
             venta.FechaCreacion,
             venta.MetodoPago
         });
@@ -100,30 +140,60 @@ public class VentasController : ControllerBase
         if (ventasOffline == null || !ventasOffline.Any())
             return Ok(new { procesadas = 0, mensaje = "No hay ventas para sincronizar." });
 
-        int procesadas = 0;
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var usuarioId))
+            return Unauthorized();
 
-        if (!await _context.CortesCaja.AnyAsync(c => c.Abierto))
-            return BadRequest(new { error = "No existe un turno de caja abierto." });
-
-        foreach (var vOff in ventasOffline)
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            if (vOff.Lineas == null || vOff.Lineas.Count == 0 || vOff.Lineas.Any(l => l.Cantidad <= 0))
-                return BadRequest(new { error = "Cada venta offline debe contener cantidades mayores que cero." });
+            if (!await _context.CortesCaja.AnyAsync(c => c.Abierto))
+                return BadRequest(new { error = "No existe un turno de caja abierto." });
 
-            if (!Enum.IsDefined(typeof(MetodoPago), vOff.MetodoPago))
-                return BadRequest(new { error = "El método de pago no es válido." });
+            int procesadas = 0;
 
-            var prendaIds = vOff.Lineas.Select(l => l.PrendaId).ToList();
-            var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
-
-            decimal totalVenta = 0;
-            var detalles = new List<DetalleVenta>();
-
-            foreach (var linea in vOff.Lineas)
+            foreach (var vOff in ventasOffline)
             {
-                var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
-                if (prenda != null && prenda.Activo)
+                if (string.IsNullOrWhiteSpace(vOff.FolioTemporal))
+                    return BadRequest(new { error = "Cada venta offline debe tener un folio temporal." });
+
+                // El folio temporal funciona como idempotency key: reintentar el lote no duplica ventas.
+                if (await _context.Ventas.AnyAsync(v => v.NumeroTicket == vOff.FolioTemporal))
+                    continue;
+
+                if (vOff.Lineas == null || vOff.Lineas.Count == 0 || vOff.Lineas.Any(l => l.Cantidad <= 0))
+                    return BadRequest(new { error = "Cada venta offline debe contener cantidades mayores que cero." });
+
+                if (!Enum.IsDefined(typeof(MetodoPago), vOff.MetodoPago))
+                    return BadRequest(new { error = "El método de pago no es válido." });
+
+                if (vOff.DescuentoPorcentaje < 0 || vOff.DescuentoPorcentaje > 100)
+                    return BadRequest(new { error = "El descuento debe estar entre 0 y 100%." });
+
+                if (vOff.MetodoPago == (int)MetodoPago.Efectivo && vOff.EfectivoRecibido < 0)
+                    return BadRequest(new { error = "El efectivo recibido no puede ser negativo." });
+
+                var prendaIds = vOff.Lineas.Where(l => l.PrendaId.HasValue).Select(l => l.PrendaId!.Value).ToList();
+                var prendas = await _context.Prendas.Where(p => prendaIds.Contains(p.Id)).ToListAsync();
+
+                decimal totalVenta = 0;
+                var detalles = new List<DetalleVenta>();
+
+                foreach (var linea in vOff.Lineas)
                 {
+                    if (!linea.PrendaId.HasValue)
+                    {
+                        if (!vOff.EsVentaDesarmada || string.IsNullOrWhiteSpace(linea.Descripcion) || linea.PrecioUnitario <= 0)
+                            return BadRequest(new { error = "La pieza genérica requiere descripción y precio." });
+
+                        detalles.Add(new DetalleVenta { Cantidad = linea.Cantidad, PrecioUnitario = linea.PrecioUnitario, Descripcion = linea.Descripcion.Trim() });
+                        totalVenta += linea.PrecioUnitario * linea.Cantidad;
+                        continue;
+                    }
+
+                    var prenda = prendas.FirstOrDefault(p => p.Id == linea.PrendaId);
+                    if (prenda == null || !prenda.Activo)
+                        return BadRequest(new { error = $"La prenda con ID {linea.PrendaId} no existe o está inactiva." });
+
                     if (prenda.StockActual < linea.Cantidad)
                         return BadRequest(new { error = $"Stock insuficiente para '{prenda.Nombre}'." });
 
@@ -139,28 +209,45 @@ public class VentasController : ControllerBase
                     totalVenta += detalle.PrecioUnitario * detalle.Cantidad;
                     detalles.Add(detalle);
                 }
+
+                var descuentoMonto = decimal.Round(totalVenta * vOff.DescuentoPorcentaje / 100m, 2);
+                var totalConDescuento = totalVenta - descuentoMonto;
+                var cambio = vOff.MetodoPago == (int)MetodoPago.Efectivo
+                    ? Math.Max(0, vOff.EfectivoRecibido - totalConDescuento)
+                    : 0;
+
+                var venta = new Venta
+                {
+                    NumeroTicket = vOff.FolioTemporal,
+                    UsuarioId = usuarioId,
+                    MetodoPago = (MetodoPago)vOff.MetodoPago,
+                    Subtotal = totalVenta,
+                    DescuentoPorcentaje = vOff.DescuentoPorcentaje,
+                    DescuentoMonto = descuentoMonto,
+                    Total = totalConDescuento,
+                    EfectivoRecibido = vOff.EfectivoRecibido,
+                    Cambio = cambio,
+                    EsVentaDesarmada = vOff.EsVentaDesarmada,
+                    NotaAdministrativa = vOff.EsVentaDesarmada ? "Revisar y ajustar stock del conjunto por venta desarmada." : null,
+                    Detalles = detalles,
+                    Activo = true,
+                    FechaCreacion = vOff.FechaLocal != default ? vOff.FechaLocal : DateTime.UtcNow
+                };
+
+                _context.Ventas.Add(venta);
+                procesadas++;
             }
 
-            var consecutivo = await _context.Ventas.CountAsync() + 1;
-            var numeroTicket = $"MB-{DateTime.UtcNow:yyyyMMdd}-{consecutivo:D4}";
-
-            var venta = new Venta
-            {
-                NumeroTicket = numeroTicket,
-                UsuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
-                MetodoPago = (MetodoPago)vOff.MetodoPago,
-                Total = totalVenta > 0 ? totalVenta : vOff.TotalEstimado,
-                Detalles = detalles,
-                Activo = true,
-                FechaCreacion = vOff.FechaLocal != default ? vOff.FechaLocal : DateTime.UtcNow
-            };
-
-            _context.Ventas.Add(venta);
-            procesadas++;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return Ok(new { procesadas, mensaje = $"Se sincronizaron exitosamente {procesadas} venta(s) fuera de línea." });
         }
-
-        await _context.SaveChangesAsync();
-        return Ok(new { procesadas, mensaje = $"Se sincronizaron exitosamente {procesadas} venta(s) fuera de línea." });
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al sincronizar ventas offline");
+            await transaction.RollbackAsync();
+            return StatusCode(500, new { error = "No se pudieron sincronizar las ventas. Se conservarán localmente para reintentar." });
+        }
     }
 
     [HttpGet]
@@ -193,6 +280,13 @@ public class VentasController : ControllerBase
                 v.FechaCreacion,
                 v.MetodoPago,
                 v.Total,
+                v.Subtotal,
+                v.DescuentoPorcentaje,
+                v.DescuentoMonto,
+                v.EfectivoRecibido,
+                v.Cambio,
+                v.EsVentaDesarmada,
+                v.NotaAdministrativa,
                 v.Activo,
                 Cajero = v.Usuario != null ? v.Usuario.NombreCompleto : "Staff",
                 TotalCosto = v.Detalles.Sum(d => d.Prenda != null ? d.Prenda.PrecioCosto * d.Cantidad : 0),
@@ -201,7 +295,7 @@ public class VentasController : ControllerBase
                 Lineas = v.Detalles.Select(d => new
                 {
                     d.PrendaId,
-                    Nombre = d.Prenda != null ? d.Prenda.Nombre : "Prenda",
+                    Nombre = d.Prenda != null ? d.Prenda.Nombre : (d.Descripcion ?? "Pieza desarmada"),
                     Sku = d.Prenda != null ? d.Prenda.Sku : "",
                     Color = d.Prenda != null ? d.Prenda.Color : "",
                     Talla = d.Prenda != null ? (int)d.Prenda.Talla : 3,
@@ -298,13 +392,18 @@ public class CrearVentaDto
 {
     public int UsuarioId { get; set; }
     public int MetodoPago { get; set; }
+    public decimal DescuentoPorcentaje { get; set; }
+    public decimal EfectivoRecibido { get; set; }
+    public bool EsVentaDesarmada { get; set; }
     public List<LineaVentaDto> Lineas { get; set; } = new();
 }
 
 public class LineaVentaDto
 {
-    public int PrendaId { get; set; }
+    public int? PrendaId { get; set; }
     public int Cantidad { get; set; }
+    public string? Descripcion { get; set; }
+    public decimal PrecioUnitario { get; set; }
 }
 
 public class VentaOfflineDto
@@ -313,6 +412,9 @@ public class VentaOfflineDto
     public int UsuarioId { get; set; }
     public int MetodoPago { get; set; }
     public decimal TotalEstimado { get; set; }
+    public decimal DescuentoPorcentaje { get; set; }
+    public decimal EfectivoRecibido { get; set; }
+    public bool EsVentaDesarmada { get; set; }
     public DateTime FechaLocal { get; set; }
     public List<LineaVentaDto> Lineas { get; set; } = new();
 }

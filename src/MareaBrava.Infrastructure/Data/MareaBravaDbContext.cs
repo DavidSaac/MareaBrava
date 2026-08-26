@@ -17,6 +17,8 @@ public class MareaBravaDbContext : DbContext
     public DbSet<CorteCaja> CortesCaja => Set<CorteCaja>();
     public DbSet<CategoriaProducto> CategoriasProductos => Set<CategoriaProducto>();
     public DbSet<Gasto> Gastos => Set<Gasto>();
+    public DbSet<Apartado> Apartados => Set<Apartado>();
+    public DbSet<DetalleApartado> DetallesApartados => Set<DetalleApartado>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +53,37 @@ public class MareaBravaDbContext : DbContext
             entity.Property(g => g.Concepto).IsRequired().HasMaxLength(150);
             entity.Property(g => g.Monto).HasPrecision(18, 2);
             entity.Property(g => g.Observaciones).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.Property(v => v.Subtotal).HasPrecision(18, 2);
+            entity.Property(v => v.DescuentoPorcentaje).HasPrecision(18, 2);
+            entity.Property(v => v.DescuentoMonto).HasPrecision(18, 2);
+            entity.Property(v => v.EfectivoRecibido).HasPrecision(18, 2);
+            entity.Property(v => v.Cambio).HasPrecision(18, 2);
+            entity.Property(v => v.NotaAdministrativa).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<DetalleApartado>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.PrecioUnitario).HasPrecision(18, 2);
+            entity.HasOne(d => d.Apartado).WithMany(a => a.Detalles).HasForeignKey(d => d.ApartadoId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Prenda).WithMany().HasForeignKey(d => d.PrendaId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Apartado>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.HasIndex(a => a.NumeroApartado).IsUnique();
+            entity.Property(a => a.NumeroApartado).IsRequired().HasMaxLength(50);
+            entity.Property(a => a.NombreClienta).IsRequired().HasMaxLength(150);
+            entity.Property(a => a.Telefono).IsRequired().HasMaxLength(30);
+            entity.Property(a => a.Anticipo).HasPrecision(18, 2);
+            entity.Property(a => a.Total).HasPrecision(18, 2);
+            entity.Property(a => a.Estado).IsRequired().HasMaxLength(20);
+            entity.HasOne(a => a.Usuario).WithMany().HasForeignKey(a => a.UsuarioId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // Usuario
@@ -91,6 +124,7 @@ public class MareaBravaDbContext : DbContext
             entity.HasOne(d => d.Prenda)
                   .WithMany()
                   .HasForeignKey(d => d.PrendaId)
+                .IsRequired(false)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

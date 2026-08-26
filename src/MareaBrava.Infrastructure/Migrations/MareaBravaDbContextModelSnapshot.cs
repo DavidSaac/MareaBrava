@@ -17,13 +17,162 @@ namespace MareaBrava.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
-            modelBuilder.Entity("MareaBrava.Domain.Entities.DetalleVenta", b =>
+            modelBuilder.Entity("MareaBrava.Domain.Entities.Apartado", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Anticipo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaExpiracion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaLiquidacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NombreClienta")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NumeroApartado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NumeroApartado")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Apartados");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.CategoriaProducto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("CategoriasProductos");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.CorteCaja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Abierto")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Diferencia")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("EfectivoRealContado")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaApertura")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("FondoInicial")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalEsperadoEfectivo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("VentasEfectivo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("VentasTarjeta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("VentasTransferencia")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("CortesCaja");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.DetalleApartado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ApartadoId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Cantidad")
@@ -42,6 +191,43 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.Property<int>("PrendaId")
                         .HasColumnType("INTEGER");
 
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartadoId");
+
+                    b.HasIndex("PrendaId");
+
+                    b.ToTable("DetallesApartados");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.DetalleVenta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PrendaId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("VentaId")
                         .HasColumnType("INTEGER");
 
@@ -51,7 +237,43 @@ namespace MareaBrava.Infrastructure.Migrations
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("DetallesVenta");
+                    b.ToTable("DetallesVentas");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.Gasto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaGasto")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Gastos");
                 });
 
             modelBuilder.Entity("MareaBrava.Domain.Entities.Prenda", b =>
@@ -63,8 +285,12 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("CategoriaId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Color")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Descripcion")
@@ -81,6 +307,7 @@ namespace MareaBrava.Infrastructure.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("PrecioCosto")
@@ -93,6 +320,7 @@ namespace MareaBrava.Infrastructure.Migrations
 
                     b.Property<string>("Sku")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("StockActual")
@@ -108,6 +336,8 @@ namespace MareaBrava.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
 
                     b.HasIndex("Sku")
                         .IsUnique();
@@ -126,6 +356,7 @@ namespace MareaBrava.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("FechaCreacion")
@@ -136,6 +367,7 @@ namespace MareaBrava.Infrastructure.Migrations
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
@@ -162,6 +394,25 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("Cambio")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DescuentoMonto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DescuentoPorcentaje")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("EfectivoRecibido")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EsVentaDesarmada")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("TEXT");
 
@@ -174,8 +425,17 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.Property<int>("MetodoPago")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("NotaAdministrativa")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("NumeroTicket")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Total")
@@ -192,13 +452,53 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.ToTable("Ventas");
                 });
 
+            modelBuilder.Entity("MareaBrava.Domain.Entities.Apartado", b =>
+                {
+                    b.HasOne("MareaBrava.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.CorteCaja", b =>
+                {
+                    b.HasOne("MareaBrava.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.DetalleApartado", b =>
+                {
+                    b.HasOne("MareaBrava.Domain.Entities.Apartado", "Apartado")
+                        .WithMany("Detalles")
+                        .HasForeignKey("ApartadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MareaBrava.Domain.Entities.Prenda", "Prenda")
+                        .WithMany()
+                        .HasForeignKey("PrendaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartado");
+
+                    b.Navigation("Prenda");
+                });
+
             modelBuilder.Entity("MareaBrava.Domain.Entities.DetalleVenta", b =>
                 {
                     b.HasOne("MareaBrava.Domain.Entities.Prenda", "Prenda")
                         .WithMany()
                         .HasForeignKey("PrendaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("MareaBrava.Domain.Entities.Venta", "Venta")
                         .WithMany("Detalles")
@@ -211,15 +511,35 @@ namespace MareaBrava.Infrastructure.Migrations
                     b.Navigation("Venta");
                 });
 
+            modelBuilder.Entity("MareaBrava.Domain.Entities.Prenda", b =>
+                {
+                    b.HasOne("MareaBrava.Domain.Entities.CategoriaProducto", "Categoria")
+                        .WithMany("Prendas")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Categoria");
+                });
+
             modelBuilder.Entity("MareaBrava.Domain.Entities.Venta", b =>
                 {
                     b.HasOne("MareaBrava.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.Apartado", b =>
+                {
+                    b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("MareaBrava.Domain.Entities.CategoriaProducto", b =>
+                {
+                    b.Navigation("Prendas");
                 });
 
             modelBuilder.Entity("MareaBrava.Domain.Entities.Venta", b =>

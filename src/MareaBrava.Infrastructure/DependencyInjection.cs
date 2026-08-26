@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IVentaRepository, VentaRepository>();
         services.AddScoped<IPrendaService, PrendaService>();
         services.AddScoped<IVentaService, VentaService>();
+        services.AddHostedService<ApartadoExpirationService>();
 
         return services;
     }

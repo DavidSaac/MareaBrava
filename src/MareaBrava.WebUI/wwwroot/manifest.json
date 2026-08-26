@@ -1,0 +1,16 @@
+{
+  "name": "Marea Brava Staff",
+  "short_name": "Marea Brava",
+  "start_url": "/staff.html",
+  "display": "standalone",
+  "background_color": "#FAF6F0",
+  "theme_color": "#D80064",
+  "lang": "es-MX",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

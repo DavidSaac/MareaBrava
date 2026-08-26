@@ -102,7 +102,7 @@ public class VentaService : IVentaService
         UsuarioId = v.UsuarioId,
         Detalles = v.Detalles.Select(d => new DetalleVentaDto
         {
-            PrendaId = d.PrendaId,
+            PrendaId = d.PrendaId ?? 0,
             NombrePrenda = d.Prenda?.Nombre ?? string.Empty,
             SkuPrenda = d.Prenda?.Sku ?? string.Empty,
             Cantidad = d.Cantidad,

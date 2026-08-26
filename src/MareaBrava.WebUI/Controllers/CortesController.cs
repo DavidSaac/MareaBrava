@@ -56,7 +56,9 @@ public class CortesController : ControllerBase
             ventasTransf,
             totalEsperadoEfectivo,
             totalVentasTurno = ventasEfectivo + ventasTarjeta + ventasTransf,
-            totalPrendasVendidas = ventas.Count
+            totalPrendasVendidas = await _context.DetallesVentas
+                .Where(d => d.Venta != null && d.Venta.FechaCreacion >= corteAbierto.FechaApertura && d.Venta.Activo)
+                .SumAsync(d => (int?)d.Cantidad) ?? 0
         });
     }
 
