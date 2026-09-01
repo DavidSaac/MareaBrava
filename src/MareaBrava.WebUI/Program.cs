@@ -1,6 +1,8 @@
 using MareaBrava.Infrastructure;
 using MareaBrava.Infrastructure.Data;
+using MareaBrava.WebUI.Utils;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +71,19 @@ using (var scope = app.Services.CreateScope())
 app.UseCors("CloudflarePolicy");
 
 // 6. Servir archivos estáticos (uploads, fotos, etc.)
+// Fotos nuevas: si UPLOADS_PATH apunta a un disco persistente (ej. Render), se sirven desde ahí;
+// las fotos ya existentes en wwwroot/uploads (horneadas en la imagen) siguen funcionando por el fallback de abajo.
+var carpetaUploads = UploadsPathResolver.Resolver(app.Environment.WebRootPath);
+Directory.CreateDirectory(carpetaUploads);
+var carpetaUploadsWwwroot = Path.Combine(app.Environment.WebRootPath, "uploads");
+if (!string.Equals(Path.GetFullPath(carpetaUploads), Path.GetFullPath(carpetaUploadsWwwroot), StringComparison.OrdinalIgnoreCase))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(carpetaUploads),
+        RequestPath = "/uploads"
+    });
+}
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

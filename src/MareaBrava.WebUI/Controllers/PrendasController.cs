@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MareaBrava.Domain.Entities;
 using MareaBrava.Domain.Enums;
 using MareaBrava.Infrastructure.Data;
+using MareaBrava.WebUI.Utils;
 
 namespace MareaBrava.WebUI.Controllers;
 
@@ -99,7 +100,7 @@ public class PrendasController : ControllerBase
             if (!TryGetImageExtension(dto.Imagen, out var extension))
                 return BadRequest(new { error = "La imagen debe ser JPG, PNG o WEBP y no superar 5 MB." });
 
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            var uploadsFolder = UploadsPathResolver.Resolver(_env.WebRootPath);
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
             var nombreArchivo = $"{Guid.NewGuid():N}{extension}";
@@ -177,7 +178,7 @@ public class PrendasController : ControllerBase
             if (!TryGetImageExtension(dto.Imagen, out var extension))
                 return BadRequest(new { error = "La imagen debe ser JPG, PNG o WEBP y no superar 5 MB." });
 
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            var uploadsFolder = UploadsPathResolver.Resolver(_env.WebRootPath);
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
             var nombreArchivo = $"{Guid.NewGuid():N}{extension}";

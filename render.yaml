@@ -9,6 +9,8 @@ services:
         value: Production
       - key: ConnectionStrings__DefaultConnection
         value: Data Source=/var/data/mareabrava.db
+      - key: UPLOADS_PATH
+        value: /var/data/uploads
       - key: Cors__AllowedOrigins__0
         sync: false
     disk:
