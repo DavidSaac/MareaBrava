@@ -16,6 +16,7 @@ public class VentasController : ControllerBase
 {
     private readonly MareaBravaDbContext _context;
     private readonly ILogger<VentasController> _logger;
+    private static readonly TimeZoneInfo ZonaHorariaMexico = TimeZoneInfo.FindSystemTimeZoneById("America/Mexico_City");
 
     public VentasController(MareaBravaDbContext context, ILogger<VentasController> logger)
     {
@@ -383,7 +384,7 @@ public class VentasController : ControllerBase
         var bytes = encoding.GetBytes(builder.ToString());
         var finalBytes = preamble.Concat(bytes).ToArray();
 
-        var nombreArchivo = $"MareaBrava_Ventas_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+        var nombreArchivo = $"MareaBrava_Ventas_{TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaHorariaMexico):yyyyMMdd_HHmm}.csv";
         return File(finalBytes, "text/csv; charset=utf-8", nombreArchivo);
     }
 }

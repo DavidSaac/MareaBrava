@@ -16,6 +16,7 @@ public class PrendasController : ControllerBase
     private const long MaxImageBytes = 5 * 1024 * 1024;
     private readonly MareaBravaDbContext _context;
     private readonly IWebHostEnvironment _env;
+    private static readonly TimeZoneInfo ZonaHorariaMexico = TimeZoneInfo.FindSystemTimeZoneById("America/Mexico_City");
 
     public PrendasController(MareaBravaDbContext context, IWebHostEnvironment env)
     {
@@ -337,7 +338,8 @@ public class PrendasController : ControllerBase
             }
 
             memoryStream.Seek(0, SeekOrigin.Begin);
-            var nombreArchivo = $"MareaBrava_Fotos_{(talla.HasValue && talla.Value > 0 ? $"Talla_{talla.Value}" : "CatalogoCompleto")}_{DateTime.Now:yyyyMMdd}.zip";
+            var horaMexico = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaHorariaMexico);
+            var nombreArchivo = $"MareaBrava_Fotos_{(talla.HasValue && talla.Value > 0 ? $"Talla_{talla.Value}" : "CatalogoCompleto")}_{horaMexico:yyyyMMdd}.zip";
 
             Response.Headers["X-Fotos-Incluidas"] = encontradas.Count.ToString();
             Response.Headers["X-Fotos-Omitidas"] = (externas.Count + noEncontradas.Count).ToString();
@@ -378,7 +380,7 @@ public class PrendasController : ControllerBase
         var bytes = encoding.GetBytes(builder.ToString());
         var finalBytes = preamble.Concat(bytes).ToArray();
 
-        var nombreArchivo = $"MareaBrava_Inventario_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+        var nombreArchivo = $"MareaBrava_Inventario_{TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaHorariaMexico):yyyyMMdd_HHmm}.csv";
         return File(finalBytes, "text/csv; charset=utf-8", nombreArchivo);
     }
 }
