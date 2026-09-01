@@ -84,15 +84,23 @@
       <!-- Filtro Talla -->
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
         <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Filtrar por Talla</h3>
-        <div class="grid grid-cols-3 gap-2 text-xs font-bold">
-          <button onclick="filtrarTalla(0)" id="talla-0" class="py-2 rounded-xl border bg-brand-magenta text-white font-black">Todas</button>
-          <button onclick="filtrarTalla(1)" id="talla-1" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">XS</button>
-          <button onclick="filtrarTalla(2)" id="talla-2" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">S</button>
-          <button onclick="filtrarTalla(3)" id="talla-3" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">M</button>
-          <button onclick="filtrarTalla(4)" id="talla-4" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">L</button>
-          <button onclick="filtrarTalla(5)" id="talla-5" class="py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">XL</button>
-          <button onclick="filtrarTalla(6)" id="talla-6" class="col-span-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta">Unitalla</button>
-        </div>
+        <select id="filtro-talla-publico" onchange="filtrarTalla(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+          <option value="0">Todas</option>
+          <option value="7">XXCH</option>
+          <option value="8">XCH</option>
+          <option value="9">CH</option>
+          <option value="1">XS</option>
+          <option value="2">S</option>
+          <option value="3">M</option>
+          <option value="4">L</option>
+          <option value="5">XL</option>
+          <option value="10">XXL</option>
+          <option value="11">XXXL</option>
+          <option value="6">UNITALLA</option>
+          <option value="12">NIÑO</option>
+          <option value="13">NIÑA</option>
+          <option value="14">BEBÉ</option>
+        </select>
       </div>
 
       <!-- Checkbox para Ocultar Agotados -->
@@ -232,7 +240,7 @@
     let categoriaSeleccionada = 0;
     let tallaSeleccionada = 0;
 
-    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla' };
+    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 7: 'XXCH', 8: 'XCH', 9: 'CH', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé' };
     const fotosDefault = [
       "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
       "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
@@ -295,14 +303,6 @@
 
     function filtrarTalla(talla) {
       tallaSeleccionada = talla;
-      [0, 1, 2, 3, 4, 5, 6].forEach(t => {
-        const btn = document.getElementById(`talla-${t}`);
-        if (btn) {
-          btn.className = t === talla
-            ? (t === 6 ? "col-span-3 " : "") + "py-2 rounded-xl border bg-brand-magenta text-white font-black shadow-sm"
-            : (t === 6 ? "col-span-3 " : "") + "py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-magenta font-bold";
-        }
-      });
       renderizarCatalogo();
     }
 
