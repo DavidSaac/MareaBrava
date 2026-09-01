@@ -550,9 +550,7 @@
           <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Talla</label>
           <select id="admin-filtro-talla" onchange="aplicarFiltrosAdmin()" class="w-full bg-white border border-brand-borderCream rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-brand-magenta shadow-sm">
             <option value="0">🏷️ Todas las Tallas</option>
-            <option value="7">XXCH</option>
-            <option value="8">XCH</option>
-            <option value="9">CH</option>
+            <option value="15">XXS</option>
             <option value="1">XS</option>
             <option value="2">S</option>
             <option value="3">M</option>
@@ -828,9 +826,7 @@
           <div>
             <label class="block mb-1 font-bold">Talla</label>
             <select id="m-talla" class="w-full border-2 border-slate-200 rounded-xl p-2.5 bg-white">
-              <option value="7">XXCH</option>
-              <option value="8">XCH</option>
-              <option value="9">CH</option>
+              <option value="15">XXS</option>
               <option value="1">XS</option>
               <option value="2">S</option>
               <option value="3" selected>M</option>
@@ -945,7 +941,7 @@
     let chartTendenciaInstancia = null;
     let chartMetodosInstancia = null;
 
-    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 7: 'XXCH', 8: 'XCH', 9: 'CH', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé' };
+    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé', 15: 'XXS' };
     const metodosMap = { 1: 'Efectivo', 2: 'Tarjeta', 3: 'Transferencia' };
     const fotosDefault = [
       "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",

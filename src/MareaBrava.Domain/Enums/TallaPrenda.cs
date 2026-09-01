@@ -15,5 +15,6 @@ public enum TallaPrenda
     XXXL = 11,
     Nino = 12,
     Nina = 13,
-    Bebe = 14
+    Bebe = 14,
+    XXS = 15
 }

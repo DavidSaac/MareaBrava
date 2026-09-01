@@ -87,9 +87,7 @@
         <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Filtrar por Talla</h3>
         <select id="filtro-talla-publico" onchange="filtrarTalla(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
           <option value="0">Todas</option>
-          <option value="7">XXCH</option>
-          <option value="8">XCH</option>
-          <option value="9">CH</option>
+          <option value="15">XXS</option>
           <option value="1">XS</option>
           <option value="2">S</option>
           <option value="3">M</option>
@@ -241,7 +239,7 @@
     let categoriaSeleccionada = 0;
     let tallaSeleccionada = 0;
 
-    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 7: 'XXCH', 8: 'XCH', 9: 'CH', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé' };
+    const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé', 15: 'XXS' };
     const fotosDefault = [
       "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600",
       "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
