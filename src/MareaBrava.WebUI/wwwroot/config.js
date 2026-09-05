@@ -1,6 +1,6 @@
 // Configuración dinámica de entorno para Marea Brava
 // El frontend y la API se sirven desde el mismo origen (Azure App Service), por lo que se usan rutas relativas.
-const BASE_URL = "https://mareabrava-1.onrender.com";
+const BASE_URL = "";
 
 window.API_BASE = `${BASE_URL}/api`;
 window.UPLOADS_BASE = `${BASE_URL}`;
