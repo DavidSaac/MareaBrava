@@ -19,6 +19,7 @@ public class MareaBravaDbContext : DbContext
     public DbSet<Gasto> Gastos => Set<Gasto>();
     public DbSet<Apartado> Apartados => Set<Apartado>();
     public DbSet<DetalleApartado> DetallesApartados => Set<DetalleApartado>();
+    public DbSet<InformacionTienda> InformacionTienda => Set<InformacionTienda>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,12 @@ public class MareaBravaDbContext : DbContext
             entity.Property(g => g.Concepto).IsRequired().HasMaxLength(150);
             entity.Property(g => g.Monto).HasPrecision(18, 2);
             entity.Property(g => g.Observaciones).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<InformacionTienda>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.TextoPromocional).IsRequired().HasMaxLength(2000);
         });
 
         modelBuilder.Entity<Venta>(entity =>

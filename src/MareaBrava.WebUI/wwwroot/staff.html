@@ -272,6 +272,9 @@
         <button onclick="cambiarSeccion('usuarios')" id="tab-usuarios" class="hidden bg-transparent hover:bg-brand-cardBg text-brand-magenta border border-brand-magenta px-4 py-2 rounded-full text-xs font-bold transition">
           <i class="fa-solid fa-users-gear mr-1.5"></i>Equipo
         </button>
+        <button onclick="cambiarSeccion('informacion-tienda')" id="tab-informacion-tienda" class="hidden bg-transparent hover:bg-brand-cardBg text-brand-magenta border border-brand-magenta px-4 py-2 rounded-full text-xs font-bold transition">
+          <i class="fa-solid fa-store mr-1.5"></i>Información de la tienda
+        </button>
         
         <!-- Botón Corte (Visible para ambos) -->
         <button onclick="gestionarCorteCaja()" id="btn-accion-corte" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-full text-xs font-black transition flex items-center gap-1.5 shadow-sm">
@@ -665,6 +668,27 @@
             <tbody id="tabla-usuarios-equipo" class="divide-y divide-brand-borderCream/60"></tbody>
           </table>
         </div>
+      </div>
+    </main>
+
+    <main id="seccion-informacion-tienda" class="hidden w-full px-6 py-8 flex-1 space-y-6">
+      <div class="bg-white rounded-3xl border border-brand-borderCream shadow-sm p-6 sm:p-8 space-y-5">
+        <div>
+          <h2 class="text-3xl font-serif font-black text-slate-900">Información de la tienda</h2>
+          <p class="text-sm text-slate-500 font-medium">Edita el texto promocional que aparece en Info y Ubicación.</p>
+        </div>
+
+        <form onsubmit="guardarInformacionTienda(event)" class="space-y-4">
+          <div>
+            <label for="texto-informacion-tienda" class="block mb-1.5 text-sm font-bold text-slate-700">Texto promocional</label>
+            <textarea id="texto-informacion-tienda" rows="10" maxlength="2000" required class="w-full border-2 border-slate-200 rounded-xl p-3 text-sm font-semibold text-slate-700 focus:outline-brand-magenta resize-y"></textarea>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-5 py-2.5 rounded-xl text-xs font-black shadow-md transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i><span>Guardar información</span>
+            </button>
+          </div>
+        </form>
       </div>
     </main>
 
@@ -1158,6 +1182,7 @@
         const tabVentas = document.getElementById('tab-ventas');
         const tabAdmin = document.getElementById('tab-admin');
         const tabUsuarios = document.getElementById('tab-usuarios');
+        const tabInformacionTienda = document.getElementById('tab-informacion-tienda');
 
         if (esAdmin()) {
           labelRol.innerText = '👑 Admin';
@@ -1167,6 +1192,7 @@
           tabVentas.classList.remove('hidden');
           tabAdmin.classList.remove('hidden');
           tabUsuarios.classList.remove('hidden');
+          tabInformacionTienda.classList.remove('hidden');
 
           document.getElementById('panel-metricas-admin').style.display = 'grid';
           document.getElementById('panel-graficas-admin').style.display = 'grid';
@@ -1180,6 +1206,7 @@
           tabVentas.classList.add('hidden');
           tabAdmin.classList.add('hidden');
           tabUsuarios.classList.add('hidden');
+          tabInformacionTienda.classList.add('hidden');
 
           document.getElementById('panel-metricas-admin').style.display = 'none';
           document.getElementById('panel-graficas-admin').style.display = 'none';
@@ -1226,7 +1253,7 @@
     }
 
     function cambiarSeccion(sec) {
-      if ((sec === 'ventas' || sec === 'admin' || sec === 'usuarios') && !esAdmin()) {
+      if ((sec === 'ventas' || sec === 'admin' || sec === 'usuarios' || sec === 'informacion-tienda') && !esAdmin()) {
         sec = 'pos';
       }
 
@@ -1234,12 +1261,14 @@
       document.getElementById('seccion-ventas').classList.toggle('hidden', sec !== 'ventas');
       document.getElementById('seccion-admin').classList.toggle('hidden', sec !== 'admin');
       document.getElementById('seccion-usuarios').classList.toggle('hidden', sec !== 'usuarios');
+      document.getElementById('seccion-informacion-tienda').classList.toggle('hidden', sec !== 'informacion-tienda');
 
       const tabs = {
         pos: document.getElementById('tab-pos'),
         ventas: document.getElementById('tab-ventas'),
         admin: document.getElementById('tab-admin'),
-        usuarios: document.getElementById('tab-usuarios')
+        usuarios: document.getElementById('tab-usuarios'),
+        'informacion-tienda': document.getElementById('tab-informacion-tienda')
       };
 
       const activeClass = "bg-brand-magenta text-white px-4 py-2 rounded-full text-xs font-bold shadow-sm transition";
@@ -1252,6 +1281,43 @@
       if (sec === 'ventas' && esAdmin()) cargarHistorialVentas();
       if (sec === 'admin' && esAdmin()) aplicarFiltrosAdmin();
       if (sec === 'usuarios' && esAdmin()) cargarUsuariosEquipo();
+      if (sec === 'informacion-tienda' && esAdmin()) cargarInformacionTienda();
+    }
+
+    async function cargarInformacionTienda() {
+      if (!esAdmin()) return;
+      try {
+        const res = await fetch('/api/informaciontienda');
+        if (!res.ok) throw new Error('No se pudo cargar la información de la tienda.');
+        const informacion = await res.json();
+        document.getElementById('texto-informacion-tienda').value = informacion.textoPromocional;
+      } catch (error) {
+        alert('No se pudo cargar la información de la tienda.');
+      }
+    }
+
+    async function guardarInformacionTienda(e) {
+      e.preventDefault();
+      if (!esAdmin()) return;
+
+      const textoPromocional = document.getElementById('texto-informacion-tienda').value;
+      try {
+        const res = await fetch('/api/informaciontienda', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ textoPromocional })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          alert(error.error || 'No se pudo guardar la información.');
+          return;
+        }
+
+        alert('Información de la tienda guardada correctamente.');
+      } catch (error) {
+        alert('Error de conexión con el servidor.');
+      }
     }
 
     async function cargarDatos() {

@@ -146,13 +146,8 @@
           Plaza Cuauhtémoc
         </h2>
         
-        <p class="text-sm text-slate-600 font-medium leading-relaxed">
-          🔥 Bikinis desde $199 🔥<br>
-          +300 modelos disponibles<br><br>
-          👙 Bikinis · Pareos · Vestidos de playa<br>
-          🕶️ Lentes · Mascadas · Bolsas<br><br>
-          📲 Catálogo completo por WhatsApp<br>
-          ✨ Nuevos modelos cada semana
+        <p id="informacion-promocional" class="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-line">
+          Cargando información de la tienda...
         </p>
 
         <div class="space-y-3.5 pt-2 text-sm font-semibold text-slate-800">
@@ -280,9 +275,13 @@
 
     async function cargarCatalogo() {
       try {
-        const [res, categoriasRes] = await Promise.all([fetch('/api/prendas'), fetch('/api/categorias')]);
+        const [res, categoriasRes, informacionRes] = await Promise.all([fetch('/api/prendas'), fetch('/api/categorias'), fetch('/api/informaciontienda')]);
         prendas = (await res.json()).map(p => ({ ...p, imagenUrl: mediaUrl(p.imagenUrl) }));
         categorias = await categoriasRes.json();
+        if (informacionRes.ok) {
+          const informacion = await informacionRes.json();
+          document.getElementById('informacion-promocional').innerText = informacion.textoPromocional;
+        }
         document.getElementById('categorias-publicas-dinamicas').innerHTML = categorias.map(c =>
           `<button onclick="filtrarCategoria(${c.id})" id="cat-${c.id}" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">${c.nombre}</button>`
         ).join('');

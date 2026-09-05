@@ -10,6 +10,7 @@ public static class DbInitializer
     {
         await context.Database.EnsureCreatedAsync();
         await EnsureCategoriesSchemaAsync(context);
+        await EnsureStoreInformationSchemaAsync(context);
         await context.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS Gastos (Id INTEGER NOT NULL CONSTRAINT PK_Gastos PRIMARY KEY AUTOINCREMENT, Concepto TEXT NOT NULL, Monto TEXT NOT NULL, FechaGasto TEXT NOT NULL, Observaciones TEXT NULL, FechaCreacion TEXT NOT NULL, FechaModificacion TEXT NULL, Activo INTEGER NOT NULL);");
         await EnsureSalesAndReservationsSchemaAsync(context);
         await EnsureNullableSaleProductAsync(context);
@@ -69,6 +70,14 @@ public static class DbInitializer
             .Where(c => c.Nombre == name)
             .Select(c => c.Id)
             .SingleAsync();
+    }
+
+    private static async Task EnsureStoreInformationSchemaAsync(MareaBravaDbContext context)
+    {
+        await context.Database.ExecuteSqlRawAsync("CREATE TABLE IF NOT EXISTS InformacionTienda (Id INTEGER NOT NULL CONSTRAINT PK_InformacionTienda PRIMARY KEY AUTOINCREMENT, TextoPromocional TEXT NOT NULL, FechaCreacion TEXT NOT NULL, FechaModificacion TEXT NULL, Activo INTEGER NOT NULL);");
+
+        var informacionInicial = "🔥 Bikinis desde $199 🔥\n+300 modelos disponibles\n\n👙 Bikinis · Pareos · Vestidos de playa\n🕶️ Lentes · Mascadas · Bolsas\n\n📲 Catálogo completo por WhatsApp\n✨ Nuevos modelos cada semana";
+        await context.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO InformacionTienda (Id, TextoPromocional, FechaCreacion, Activo) SELECT 1, {informacionInicial}, {DateTime.UtcNow}, 1 WHERE NOT EXISTS (SELECT 1 FROM InformacionTienda WHERE Id = 1);");
     }
 
     // Crea el primer Administrador real solo si Usuarios está vacía; credenciales exclusivamente por variables de entorno.
