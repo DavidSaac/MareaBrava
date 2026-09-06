@@ -28,6 +28,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.Cookie.Name = "MareaBrava.Auth";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = false;
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = builder.Environment.IsDevelopment()
             ? SameSiteMode.Lax

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +111,13 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpGet("session")]
+    public IActionResult Session()
+    {
         return NoContent();
     }
 }

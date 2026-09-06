@@ -16,7 +16,13 @@ window.mediaUrl = function (path) {
 };
 
 const nativeFetch = window.fetch.bind(window);
-window.fetch = function (input, init = {}) {
+window.fetch = async function (input, init = {}) {
 	const requestUrl = typeof input === 'string' ? window.apiUrl(input) : input;
-	return nativeFetch(requestUrl, { ...init, credentials: 'include' });
+	const response = await nativeFetch(requestUrl, { ...init, credentials: 'include' });
+	const requestUrlValue = typeof requestUrl === 'string' ? requestUrl : requestUrl.url ?? requestUrl.toString();
+	const pathname = new URL(requestUrlValue, window.location.origin).pathname;
+	if (response.status === 401 && pathname.startsWith('/api/') && !pathname.endsWith('/auth/login') && !pathname.endsWith('/auth/logout')) {
+		window.dispatchEvent(new Event('mb:session-expired'));
+	}
+	return response;
 };

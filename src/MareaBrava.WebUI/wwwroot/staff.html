@@ -1009,6 +1009,21 @@
       "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=600"
     ];
 
+    function mostrarPantallaLogin() {
+      document.getElementById('pantalla-login').classList.remove('hidden');
+      const pantallaDashboard = document.getElementById('pantalla-dashboard');
+      pantallaDashboard.classList.add('hidden');
+      pantallaDashboard.classList.remove('flex');
+    }
+
+    function limpiarSesionLocal() {
+      usuarioStaff = null;
+      localStorage.removeItem('mb_staff_user');
+      mostrarPantallaLogin();
+    }
+
+    window.addEventListener('mb:session-expired', limpiarSesionLocal);
+
     // ================= INDEXEDDB =================
     let db;
     const DB_NAME = 'MareaBravaDB';
@@ -1160,6 +1175,19 @@
     }
 
     async function inicializarVistaStaff() {
+      if (usuarioStaff && navigator.onLine) {
+        try {
+          const sesion = await fetch('/api/auth/session');
+          if (!sesion.ok) {
+            limpiarSesionLocal();
+            return;
+          }
+        } catch (error) {
+          limpiarSesionLocal();
+          return;
+        }
+      }
+
       await abrirIndexedDB();
       actualizarEstadoRed();
       await contarVentasPendientes();
@@ -1245,11 +1273,14 @@
       }
     }
 
-    function cerrarSesion() {
-      fetch('/api/auth/logout', { method: 'POST' }).catch(() => { });
-      usuarioStaff = null;
-      localStorage.removeItem('mb_staff_user');
-      inicializarVistaStaff();
+    async function cerrarSesion() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (error) {
+        console.warn('No se pudo cerrar la sesión en el servidor.', error);
+      } finally {
+        limpiarSesionLocal();
+      }
     }
 
     function cambiarSeccion(sec) {
