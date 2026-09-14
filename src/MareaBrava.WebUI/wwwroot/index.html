@@ -76,30 +76,63 @@
       <!-- Filtro Categoría -->
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
         <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
-        <div class="flex flex-col gap-1.5 text-xs font-bold" id="lista-categorias">
-          <button onclick="filtrarCategoria(0)" id="cat-0" class="py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition">Toda la Colección</button>
-          <span id="categorias-publicas-dinamicas"></span>
-        </div>
+        <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+          <option value="0">Toda la Colección</option>
+        </select>
       </div>
 
-      <!-- Filtro Talla -->
+      <!-- Filtro Talla (selección múltiple) -->
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
-        <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Filtrar por Talla</h3>
-        <select id="filtro-talla-publico" onchange="filtrarTalla(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
-          <option value="0">Todas</option>
-          <option value="15">XXS</option>
-          <option value="1">XS</option>
-          <option value="2">S</option>
-          <option value="3">M</option>
-          <option value="4">L</option>
-          <option value="5">XL</option>
-          <option value="10">XXL</option>
-          <option value="11">XXXL</option>
-          <option value="6">UNITALLA</option>
-          <option value="12">NIÑO</option>
-          <option value="13">NIÑA</option>
-          <option value="14">BEBÉ</option>
-        </select>
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Filtrar por Talla</h3>
+          <button type="button" onclick="limpiarTallas()" class="text-[10px] font-black text-brand-magenta hover:underline">Limpiar</button>
+        </div>
+
+        <div class="relative">
+          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
+            <span id="talla-dropdown-label" class="truncate text-left">Todas las tallas</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+          </button>
+
+          <div id="panel-tallas" class="hidden absolute z-30 mt-1.5 w-full bg-white border border-slate-200 rounded-xl p-2.5 shadow-lg max-h-64 overflow-y-auto custom-scroll grid grid-cols-2 gap-1.5">
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(15, this.checked)" /> XXS
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(1, this.checked)" /> XS
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(2, this.checked)" /> S
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(3, this.checked)" /> M
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(4, this.checked)" /> L
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(5, this.checked)" /> XL
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(10, this.checked)" /> XXL
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(11, this.checked)" /> XXXL
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(6, this.checked)" /> UNITALLA
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(12, this.checked)" /> NIÑO
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(13, this.checked)" /> NIÑA
+            </label>
+            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 py-1 px-1.5 rounded-lg hover:bg-pink-50 cursor-pointer">
+              <input type="checkbox" class="chk-talla w-4 h-4 text-brand-magenta rounded focus:ring-brand-magenta cursor-pointer" onchange="alternarTalla(14, this.checked)" /> BEBÉ
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Checkbox para Ocultar Agotados -->
@@ -237,7 +270,7 @@
     let prendas = [];
     let categorias = [];
     let categoriaSeleccionada = 0;
-    let tallaSeleccionada = 0;
+    let tallasSeleccionadas = new Set();
 
     const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé', 15: 'XXS' };
     const fotosDefault = [
@@ -282,9 +315,13 @@
           const informacion = await informacionRes.json();
           document.getElementById('informacion-promocional').innerText = informacion.textoPromocional;
         }
-        document.getElementById('categorias-publicas-dinamicas').innerHTML = categorias.map(c =>
-          `<button onclick="filtrarCategoria(${c.id})" id="cat-${c.id}" class="py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition">${c.nombre}</button>`
-        ).join('');
+        const selectCategorias = document.getElementById('filtro-categoria-publico');
+        [...categorias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.innerText = c.nombre;
+          selectCategorias.appendChild(opt);
+        });
       } catch (e) {
         console.error("Error al cargar prendas", e);
       }
@@ -293,21 +330,45 @@
 
     function filtrarCategoria(cat) {
       categoriaSeleccionada = cat;
-      document.querySelectorAll('[id^="cat-"]').forEach(btn => {
-        const c = Number(btn.id.replace('cat-', ''));
-        if (btn) {
-          btn.className = c === cat 
-            ? "py-2 px-3.5 rounded-xl text-left bg-brand-magenta text-white font-black shadow-sm transition"
-            : "py-2 px-3.5 rounded-xl text-left hover:bg-pink-50 text-slate-700 transition font-bold";
-        }
-      });
+      const select = document.getElementById('filtro-categoria-publico');
+      if (select) select.value = String(cat);
       renderizarCatalogo();
     }
 
-    function filtrarTalla(talla) {
-      tallaSeleccionada = talla;
+    function toggleTallaDropdown() {
+      document.getElementById('panel-tallas').classList.toggle('hidden');
+    }
+
+    function alternarTalla(id, marcada) {
+      if (marcada) tallasSeleccionadas.add(id);
+      else tallasSeleccionadas.delete(id);
+      actualizarEtiquetaTallas();
       renderizarCatalogo();
     }
+
+    function limpiarTallas() {
+      tallasSeleccionadas.clear();
+      document.querySelectorAll('.chk-talla').forEach(chk => chk.checked = false);
+      actualizarEtiquetaTallas();
+      renderizarCatalogo();
+    }
+
+    function actualizarEtiquetaTallas() {
+      const label = document.getElementById('talla-dropdown-label');
+      if (!tallasSeleccionadas.size) {
+        label.innerText = 'Todas las tallas';
+      } else {
+        label.innerText = Array.from(tallasSeleccionadas).map(id => tallasMap[id] || id).join(', ');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('panel-tallas');
+      const btn = document.getElementById('btn-talla-dropdown');
+      if (panel && !panel.classList.contains('hidden') && !panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.add('hidden');
+      }
+    });
 
     function renderizarCatalogo() {
       const soloDisponibles = document.getElementById('check-solo-disponibles').checked;
@@ -315,7 +376,7 @@
 
       let filtradas = prendas.filter(p => {
         const coincideCat = categoriaSeleccionada === 0 || p.categoriaId === categoriaSeleccionada;
-        const coincideTalla = tallaSeleccionada === 0 || p.talla === tallaSeleccionada;
+        const coincideTalla = tallasSeleccionadas.size === 0 || tallasSeleccionadas.has(p.talla);
         const coincideStock = !soloDisponibles || p.stockActual > 0;
         return coincideCat && coincideTalla && coincideStock;
       });
