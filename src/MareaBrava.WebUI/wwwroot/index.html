@@ -36,7 +36,45 @@
     }
   </script>
   <style>
-    body { background-color: #FAF6F0; color: #1E1B18; }
+    html { background: #dff6f5; }
+    body {
+      position: relative;
+      isolation: isolate;
+      background: #FAF6F0 url('/images/fondo-marea-brava.png') center top / cover fixed no-repeat;
+      color: #1E1B18;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: rgba(255, 250, 243, 0.16);
+    }
+    body > header,
+    body > footer,
+    #vista-catalogo aside > div,
+    #vista-catalogo main > div,
+    #grid-catalogo > div,
+    #vista-ubicacion > div {
+      background-color: rgba(255, 255, 255, 0.84) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    body > header {
+      background-color: rgba(255, 255, 255, 0.78) !important;
+    }
+    #grid-catalogo > div {
+      background-color: rgba(255, 255, 255, 0.91) !important;
+    }
+    @media (max-width: 640px) {
+      body {
+        background-attachment: scroll;
+        background-size: auto 100vh;
+        background-position: center top;
+      }
+      body::before { background: rgba(255, 250, 243, 0.22); }
+    }
     .custom-scroll::-webkit-scrollbar { width: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 6px; }
   </style>
