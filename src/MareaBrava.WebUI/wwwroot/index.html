@@ -81,6 +81,12 @@
     }
     .custom-scroll::-webkit-scrollbar { width: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #D80064; border-radius: 6px; }
+    .filtro-select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    .filtro-select::-ms-expand { display: none; }
   </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased">
@@ -120,9 +126,12 @@
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
         </div>
-        <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
-          <option value="0">Toda la Colección</option>
-        </select>
+        <div class="relative">
+          <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="filtro-select w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+            <option value="0">Toda la Colección</option>
+          </select>
+          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"></i>
+        </div>
       </div>
 
       <!-- Filtro Talla (selección múltiple) -->
@@ -184,11 +193,14 @@
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Ordenar</h3>
         </div>
-        <select id="orden-catalogo" onchange="renderizarCatalogo()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
-          <option value="recientes">Novedades</option>
-          <option value="menor-precio">Menor Precio</option>
-          <option value="mayor-precio">Mayor Precio</option>
-        </select>
+        <div class="relative">
+          <select id="orden-catalogo" onchange="renderizarCatalogo()" class="filtro-select w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+            <option value="recientes">Novedades</option>
+            <option value="menor-precio">Menor Precio</option>
+            <option value="mayor-precio">Mayor Precio</option>
+          </select>
+          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"></i>
+        </div>
       </div>
 
     </aside>
