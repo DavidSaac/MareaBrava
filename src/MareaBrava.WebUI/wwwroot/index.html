@@ -127,7 +127,7 @@
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
         </div>
         <div class="relative">
-          <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="filtro-select w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+          <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="filtro-select w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
             <option value="0">Toda la Colección</option>
           </select>
           <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"></i>
@@ -142,7 +142,7 @@
         </div>
 
         <div class="relative">
-          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
+          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
             <span id="talla-dropdown-label" class="truncate text-left">Todas las tallas</span>
             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
           </button>
@@ -194,7 +194,7 @@
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Ordenar</h3>
         </div>
         <div class="relative">
-          <select id="orden-catalogo" onchange="renderizarCatalogo()" class="filtro-select w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
+          <select id="orden-catalogo" onchange="cambiarOrden()" class="filtro-select w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 focus:outline-brand-magenta">
             <option value="recientes">Novedades</option>
             <option value="menor-precio">Menor Precio</option>
             <option value="mayor-precio">Mayor Precio</option>
@@ -212,6 +212,8 @@
       </div>
 
       <div id="grid-catalogo" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+
+      <div id="paginacion-catalogo" class="hidden flex-wrap justify-center items-center gap-2 bg-white px-5 py-3 rounded-2xl border border-brand-borderCream shadow-sm"></div>
     </main>
 
   </div>
@@ -325,6 +327,8 @@
     let categorias = [];
     let categoriaSeleccionada = 0;
     let tallasSeleccionadas = new Set();
+    let paginaActual = 1;
+    const PRODUCTOS_POR_PAGINA = 24;
 
     const tallasMap = { 1: 'XS', 2: 'S', 3: 'M', 4: 'L', 5: 'XL', 6: 'Unitalla', 10: 'XXL', 11: 'XXXL', 12: 'Niño', 13: 'Niña', 14: 'Bebé', 15: 'XXS' };
     const fotosDefault = [
@@ -386,7 +390,20 @@
       categoriaSeleccionada = cat;
       const select = document.getElementById('filtro-categoria-publico');
       if (select) select.value = String(cat);
+      paginaActual = 1;
       renderizarCatalogo();
+    }
+
+    function cambiarOrden() {
+      paginaActual = 1;
+      renderizarCatalogo();
+    }
+
+    function irAPagina(pagina) {
+      paginaActual = pagina;
+      renderizarCatalogo();
+      const main = document.querySelector('#vista-catalogo main');
+      if (main) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function toggleTallaDropdown() {
@@ -397,6 +414,7 @@
       if (marcada) tallasSeleccionadas.add(id);
       else tallasSeleccionadas.delete(id);
       actualizarEtiquetaTallas();
+      paginaActual = 1;
       renderizarCatalogo();
     }
 
@@ -404,6 +422,7 @@
       tallasSeleccionadas.clear();
       document.querySelectorAll('.chk-talla').forEach(chk => chk.checked = false);
       actualizarEtiquetaTallas();
+      paginaActual = 1;
       renderizarCatalogo();
     }
 
@@ -439,12 +458,25 @@
       document.getElementById('conteo-catalogo').innerText = `Mostrando ${filtradas.length} prenda(s)`;
 
       const grid = document.getElementById('grid-catalogo');
+      const paginacion = document.getElementById('paginacion-catalogo');
       if (!filtradas.length) {
         grid.innerHTML = '<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-white rounded-3xl border border-brand-borderCream">No hay modelos disponibles con estos filtros.</div>';
+        paginacion.classList.add('hidden');
+        paginacion.classList.remove('flex');
+        paginacion.innerHTML = '';
         return;
       }
 
-      grid.innerHTML = filtradas.map((p, idx) => {
+      const totalPaginas = Math.max(1, Math.ceil(filtradas.length / PRODUCTOS_POR_PAGINA));
+      if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+      if (paginaActual < 1) paginaActual = 1;
+
+      const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+      const paginaProductos = filtradas.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
+
+      renderizarPaginacion(totalPaginas);
+
+      grid.innerHTML = paginaProductos.map((p, idx) => {
         const agotado = p.stockActual <= 0;
         const mensajeWa = encodeURIComponent(`¡Hola Marea Brava! Me interesa el modelo "${p.nombre}" en talla ${tallasMap[p.talla] || 'M'} (${p.color}) SKU: ${p.sku}. ¿Me podrían dar más detalles?`);
         const linkWa = `https://wa.me/527774773873?text=${mensajeWa}`;
@@ -483,6 +515,39 @@
           </div>
         `;
       }).join('');
+    }
+
+    function renderizarPaginacion(totalPaginas) {
+      const paginacion = document.getElementById('paginacion-catalogo');
+      if (totalPaginas <= 1) {
+        paginacion.classList.add('hidden');
+        paginacion.classList.remove('flex');
+        paginacion.innerHTML = '';
+        return;
+      }
+
+      paginacion.classList.remove('hidden');
+      paginacion.classList.add('flex');
+
+      const btnBase = 'min-w-[2.25rem] h-9 px-2.5 rounded-xl text-xs font-black transition flex items-center justify-center';
+      const btnInactivo = `${btnBase} bg-slate-50 border border-slate-200 text-slate-700 hover:bg-pink-50`;
+      const btnDeshabilitado = `${btnBase} bg-slate-50 border border-slate-200 text-slate-300 cursor-not-allowed`;
+      const btnActivo = `${btnBase} bg-brand-magenta border border-brand-magenta text-white shadow-sm`;
+
+      let html = '';
+      html += `<button type="button" ${paginaActual === 1 ? 'disabled' : ''} onclick="irAPagina(${paginaActual - 1})" class="${paginaActual === 1 ? btnDeshabilitado : btnInactivo}">
+        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+      </button>`;
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        html += `<button type="button" onclick="irAPagina(${i})" class="${i === paginaActual ? btnActivo : btnInactivo}">${i}</button>`;
+      }
+
+      html += `<button type="button" ${paginaActual === totalPaginas ? 'disabled' : ''} onclick="irAPagina(${paginaActual + 1})" class="${paginaActual === totalPaginas ? btnDeshabilitado : btnInactivo}">
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+      </button>`;
+
+      paginacion.innerHTML = html;
     }
 
     cargarCatalogo();
