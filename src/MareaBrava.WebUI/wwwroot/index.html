@@ -119,7 +119,7 @@
   <div id="vista-catalogo" class="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
     
     <!-- BARRA LATERAL DE FILTROS -->
-    <aside class="lg:col-span-3 space-y-6">
+    <aside class="lg:col-span-3 space-y-5">
       
       <!-- Filtro Categoría -->
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
@@ -127,9 +127,9 @@
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
         </div>
         <div class="relative group">
-          <div class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 pointer-events-none group-focus-within:outline group-focus-within:outline-2 group-focus-within:outline-brand-magenta">
+          <div class="w-full h-10 bg-brand-bgLight/60 border border-brand-borderCream rounded-2xl px-3.5 py-2.5 text-xs font-semibold tracking-wide text-slate-600 flex justify-between items-center gap-2 pointer-events-none transition-colors group-focus-within:border-brand-magenta/50 group-focus-within:ring-2 group-focus-within:ring-brand-magenta/20">
             <span id="filtro-categoria-label" class="truncate text-left">Toda la Colección</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+            <i class="fa-solid fa-chevron-down text-[9px] text-brand-magenta/40 shrink-0"></i>
           </div>
           <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             <option value="0">Toda la Colección</option>
@@ -145,9 +145,9 @@
         </div>
 
         <div class="relative">
-          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
+          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full h-10 bg-brand-bgLight/60 border border-brand-borderCream rounded-2xl px-3.5 py-2.5 text-xs font-semibold tracking-wide text-slate-600 flex justify-between items-center gap-2 transition-colors focus:border-brand-magenta/50 focus:ring-2 focus:ring-brand-magenta/20 focus:outline-none">
             <span id="talla-dropdown-label" class="truncate text-left">Todas las tallas</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+            <i class="fa-solid fa-chevron-down text-[9px] text-brand-magenta/40 shrink-0"></i>
           </button>
 
           <div id="panel-tallas" class="hidden absolute z-30 mt-1.5 w-full bg-white border border-slate-200 rounded-xl p-2.5 shadow-lg max-h-64 overflow-y-auto custom-scroll grid grid-cols-2 gap-1.5">
@@ -197,9 +197,9 @@
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Ordenar</h3>
         </div>
         <div class="relative group">
-          <div class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 pointer-events-none group-focus-within:outline group-focus-within:outline-2 group-focus-within:outline-brand-magenta">
+          <div class="w-full h-10 bg-brand-bgLight/60 border border-brand-borderCream rounded-2xl px-3.5 py-2.5 text-xs font-semibold tracking-wide text-slate-600 flex justify-between items-center gap-2 pointer-events-none transition-colors group-focus-within:border-brand-magenta/50 group-focus-within:ring-2 group-focus-within:ring-brand-magenta/20">
             <span id="orden-label" class="truncate text-left">Novedades</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+            <i class="fa-solid fa-chevron-down text-[9px] text-brand-magenta/40 shrink-0"></i>
           </div>
           <select id="orden-catalogo" onchange="cambiarOrden()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             <option value="recientes">Novedades</option>
