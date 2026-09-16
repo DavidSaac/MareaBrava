@@ -126,11 +126,14 @@
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Colección</h3>
         </div>
-        <div class="relative">
-          <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="filtro-select w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
+        <div class="relative group">
+          <div class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 pointer-events-none group-focus-within:outline group-focus-within:outline-2 group-focus-within:outline-brand-magenta">
+            <span id="filtro-categoria-label" class="truncate text-left">Toda la Colección</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+          </div>
+          <select id="filtro-categoria-publico" onchange="filtrarCategoria(Number(this.value))" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             <option value="0">Toda la Colección</option>
           </select>
-          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"></i>
         </div>
       </div>
 
@@ -193,13 +196,16 @@
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Ordenar</h3>
         </div>
-        <div class="relative">
-          <select id="orden-catalogo" onchange="cambiarOrden()" class="filtro-select w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-8 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 focus:outline-brand-magenta">
+        <div class="relative group">
+          <div class="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 flex justify-between items-center gap-2 pointer-events-none group-focus-within:outline group-focus-within:outline-2 group-focus-within:outline-brand-magenta">
+            <span id="orden-label" class="truncate text-left">Novedades</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 shrink-0"></i>
+          </div>
+          <select id="orden-catalogo" onchange="cambiarOrden()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             <option value="recientes">Novedades</option>
             <option value="menor-precio">Menor Precio</option>
             <option value="mayor-precio">Mayor Precio</option>
           </select>
-          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"></i>
         </div>
       </div>
 
@@ -390,13 +396,27 @@
       categoriaSeleccionada = cat;
       const select = document.getElementById('filtro-categoria-publico');
       if (select) select.value = String(cat);
+      actualizarEtiquetaCategoria();
       paginaActual = 1;
       renderizarCatalogo();
     }
 
+    function actualizarEtiquetaCategoria() {
+      const select = document.getElementById('filtro-categoria-publico');
+      const label = document.getElementById('filtro-categoria-label');
+      if (select && label) label.innerText = select.options[select.selectedIndex]?.text || 'Toda la Colección';
+    }
+
     function cambiarOrden() {
+      actualizarEtiquetaOrden();
       paginaActual = 1;
       renderizarCatalogo();
+    }
+
+    function actualizarEtiquetaOrden() {
+      const select = document.getElementById('orden-catalogo');
+      const label = document.getElementById('orden-label');
+      if (select && label) label.innerText = select.options[select.selectedIndex]?.text || 'Novedades';
     }
 
     function irAPagina(pagina) {
