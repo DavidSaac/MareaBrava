@@ -1164,6 +1164,18 @@
       }[caracter]));
     }
 
+    function formatoFechaHoraMexico(fecha) {
+      return new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City', dateStyle: 'short', timeStyle: 'short'
+      }).format(new Date(fecha));
+    }
+
+    function formatoFechaMexico(fecha) {
+      return new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      }).format(new Date(fecha));
+    }
+
     function escJsString(valor) {
       return `'${String(valor ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]/g, ' ')}'`;
     }
@@ -1735,17 +1747,16 @@
 
       let ultimaFecha = '';
       tbody.innerHTML = items.map(v => {
-        const fechaVenta = new Date(v.fechaCreacion);
-        const claveFecha = `${fechaVenta.getFullYear()}-${fechaVenta.getMonth() + 1}-${fechaVenta.getDate()}`;
+        const claveFecha = obtenerClaveDiaMexico(v.fechaCreacion);
         const encabezadoFecha = claveFecha !== ultimaFecha
           ? `<tr class="bg-slate-100/80 border-y border-slate-200">
               <td colspan="8" class="px-3.5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-600">
-                <i class="fa-regular fa-calendar mr-1.5 text-brand-magenta"></i>${fechaVenta.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                <i class="fa-regular fa-calendar mr-1.5 text-brand-magenta"></i>${formatoFechaMexico(v.fechaCreacion)}
               </td>
             </tr>`
           : '';
         ultimaFecha = claveFecha;
-        const fecha = new Date(v.fechaCreacion).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+        const fecha = formatoFechaHoraMexico(v.fechaCreacion);
         return encabezadoFecha + `
           <tr class="hover:bg-amber-50/40 transition ${!v.activo ? 'opacity-50 bg-rose-50/30' : ''}">
             <td class="p-3.5 font-mono font-bold text-slate-900">${escHtml(v.numeroTicket)}</td>
@@ -1820,7 +1831,7 @@
           <p class="text-xs font-bold mt-1">Folio: ${v.numeroTicket}</p>
         </div>
         <div class="py-2 space-y-1 text-[11px] border-b border-black">
-          <p>Fecha: ${new Date(v.fechaCreacion).toLocaleString('es-MX')}</p>
+          <p>Fecha: ${formatoFechaHoraMexico(v.fechaCreacion)}</p>
           <p>Atendió: ${v.cajero}</p>
           <p>Método: ${metodosMap[v.metodoPago]}</p>
         </div>
@@ -1846,7 +1857,7 @@
       iniciarImpresion('modo-impresion-ticket');
     }
 
-    function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0, descuento = 0, subtotal = total) {
+    function imprimirTicketPOS(folio, lineas, total, efectivoRecibido = 0, cambio = 0, descuento = 0, subtotal = total, fechaVenta = new Date().toISOString()) {
       const cont = document.getElementById('ticket-impresion-contenedor');
       cont.innerHTML = `
         <div class="text-center pb-3 border-b border-black">
@@ -1855,7 +1866,7 @@
           <p class="text-xs font-bold mt-1">Folio: ${folio}</p>
         </div>
         <div class="py-2 space-y-1 text-[11px] border-b border-black">
-          <p>Fecha: ${new Date().toLocaleString('es-MX')}</p>
+          <p>Fecha: ${formatoFechaHoraMexico(fechaVenta)}</p>
           <p>Atendió: ${usuarioStaff ? usuarioStaff.nombreCompleto : 'Staff'}</p>
           <p>Método: ${metodosMap[metodoPagoPOS]}</p>
         </div>
@@ -2413,7 +2424,7 @@
               <p class="text-[10px]">CORTE DE CAJA / CIERRE DE TURNO</p>
             </div>
             <div class="py-2 space-y-1 text-[11px] border-b border-black">
-              <p>Fecha: ${new Date().toLocaleString('es-MX')}</p>
+              <p>Fecha: ${formatoFechaHoraMexico(corte.fechaCierre || new Date().toISOString())}</p>
               <p>Atendió: ${usuarioStaff.nombreCompleto}</p>
             </div>
             <div class="py-2 space-y-1 text-[11px] border-b border-black">
@@ -2810,7 +2821,7 @@
 
           if (res.ok) {
             const venta = await res.json();
-            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total, efectivoRecibido, cambio, descuentoPOS, totalVenta);
+            imprimirTicketPOS(venta.numeroTicket, lineasImpresion, venta.total, efectivoRecibido, cambio, descuentoPOS, totalVenta, venta.fechaCreacion);
             limpiarDespuesDeVenta();
             return;
           }
@@ -2850,7 +2861,7 @@
       await guardarCatalogoLocal(catalogo);
       await encolarVentaOffline(ventaLocal);
 
-      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalConDescuento, efectivoRecibido, cambio, descuentoPOS, totalVenta);
+      imprimirTicketPOS(folioOffline + " (OFFLINE)", lineasImpresion, totalConDescuento, efectivoRecibido, cambio, descuentoPOS, totalVenta, ventaLocal.fechaLocal);
       limpiarDespuesDeVenta();
       alert(`⚡ VENTA REGISTRADA FUERA DE LÍNEA\n\nFolio: ${folioOffline}\nTotal: ${formatoMXN(totalConDescuento)}\n\nLa venta se sincronizará automáticamente al volver internet.`);
     }

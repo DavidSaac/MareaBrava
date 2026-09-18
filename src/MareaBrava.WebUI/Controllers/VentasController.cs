@@ -96,8 +96,9 @@ public class VentasController : ControllerBase
         var cambio = dto.MetodoPago == (int)MetodoPago.Efectivo
             ? Math.Max(0, dto.EfectivoRecibido - totalConDescuento)
             : 0;
+        var fechaVentaUtc = DateTime.UtcNow;
         var consecutivo = await _context.Ventas.CountAsync() + 1;
-        var numeroTicket = $"MB-{DateTime.UtcNow:yyyyMMdd}-{consecutivo:D4}";
+        var numeroTicket = $"MB-{fechaVentaUtc:yyyyMMdd}-{consecutivo:D4}";
 
         var venta = new Venta
         {
@@ -114,7 +115,8 @@ public class VentasController : ControllerBase
             NotaAdministrativa = dto.EsVentaDesarmada ? "Revisar y ajustar stock del conjunto por venta desarmada." : null,
             Detalles = detalles,
             Activo = true,
-            FechaCreacion = DateTime.UtcNow
+            FechaVenta = fechaVentaUtc,
+            FechaCreacion = fechaVentaUtc
         };
 
         _context.Ventas.Add(venta);
@@ -216,6 +218,9 @@ public class VentasController : ControllerBase
                 var cambio = vOff.MetodoPago == (int)MetodoPago.Efectivo
                     ? Math.Max(0, vOff.EfectivoRecibido - totalConDescuento)
                     : 0;
+                var fechaVentaUtc = vOff.FechaLocal != default
+                    ? vOff.FechaLocal.ToUniversalTime()
+                    : DateTime.UtcNow;
 
                 var venta = new Venta
                 {
@@ -232,7 +237,8 @@ public class VentasController : ControllerBase
                     NotaAdministrativa = vOff.EsVentaDesarmada ? "Revisar y ajustar stock del conjunto por venta desarmada." : null,
                     Detalles = detalles,
                     Activo = true,
-                    FechaCreacion = vOff.FechaLocal != default ? vOff.FechaLocal : DateTime.UtcNow
+                    FechaVenta = fechaVentaUtc,
+                    FechaCreacion = fechaVentaUtc
                 };
 
                 _context.Ventas.Add(venta);
@@ -367,8 +373,9 @@ public class VentasController : ControllerBase
 
         foreach (var v in ventas)
         {
-            var fecha = v.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy");
-            var hora = v.FechaCreacion.ToLocalTime().ToString("HH:mm:ss");
+            var fechaMexico = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(v.FechaCreacion, DateTimeKind.Utc), ZonaHorariaMexico);
+            var fecha = fechaMexico.ToString("dd/MM/yyyy");
+            var hora = fechaMexico.ToString("HH:mm:ss");
             var metodo = v.MetodoPago.ToString();
             var totalCosto = v.Detalles.Sum(d => d.Prenda != null ? d.Prenda.PrecioCosto * d.Cantidad : 0);
             var ganancia = v.Total - totalCosto;
