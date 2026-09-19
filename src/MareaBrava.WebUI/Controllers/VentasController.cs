@@ -313,7 +313,39 @@ public class VentasController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(ventas);
+        var ventasUtc = ventas.Select(v => new VentaHistorialResponse
+        {
+            Id = v.Id,
+            NumeroTicket = v.NumeroTicket,
+            FechaCreacion = DateTime.SpecifyKind(v.FechaCreacion, DateTimeKind.Utc),
+            MetodoPago = v.MetodoPago,
+            Total = v.Total,
+            Subtotal = v.Subtotal,
+            DescuentoPorcentaje = v.DescuentoPorcentaje,
+            DescuentoMonto = v.DescuentoMonto,
+            EfectivoRecibido = v.EfectivoRecibido,
+            Cambio = v.Cambio,
+            EsVentaDesarmada = v.EsVentaDesarmada,
+            NotaAdministrativa = v.NotaAdministrativa,
+            Activo = v.Activo,
+            Cajero = v.Cajero,
+            TotalCosto = v.TotalCosto,
+            GananciaNeta = v.GananciaNeta,
+            TotalPiezas = v.TotalPiezas,
+            Lineas = v.Lineas.Select(l => new LineaVentaHistorialResponse
+            {
+                PrendaId = l.PrendaId,
+                Nombre = l.Nombre,
+                Sku = l.Sku,
+                Color = l.Color,
+                Talla = l.Talla,
+                Cantidad = l.Cantidad,
+                PrecioUnitario = l.PrecioUnitario,
+                Subtotal = l.Subtotal
+            }).ToList()
+        });
+
+        return Ok(ventasUtc);
     }
 
     [HttpPost("{id}/cancelar")]
@@ -393,6 +425,40 @@ public class VentasController : ControllerBase
 
         var nombreArchivo = $"MareaBrava_Ventas_{TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaHorariaMexico):yyyyMMdd_HHmm}.csv";
         return File(finalBytes, "text/csv; charset=utf-8", nombreArchivo);
+    }
+
+    private sealed class VentaHistorialResponse
+    {
+        public int Id { get; set; }
+        public string NumeroTicket { get; set; } = string.Empty;
+        public DateTime FechaCreacion { get; set; }
+        public MetodoPago MetodoPago { get; set; }
+        public decimal Total { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal DescuentoPorcentaje { get; set; }
+        public decimal DescuentoMonto { get; set; }
+        public decimal EfectivoRecibido { get; set; }
+        public decimal Cambio { get; set; }
+        public bool EsVentaDesarmada { get; set; }
+        public string? NotaAdministrativa { get; set; }
+        public bool Activo { get; set; }
+        public string Cajero { get; set; } = string.Empty;
+        public decimal TotalCosto { get; set; }
+        public decimal GananciaNeta { get; set; }
+        public int TotalPiezas { get; set; }
+        public List<LineaVentaHistorialResponse> Lineas { get; set; } = new();
+    }
+
+    private sealed class LineaVentaHistorialResponse
+    {
+        public int? PrendaId { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Sku { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public int Talla { get; set; }
+        public int Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal { get; set; }
     }
 }
 
