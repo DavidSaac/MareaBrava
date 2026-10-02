@@ -87,6 +87,11 @@
       appearance: none;
     }
     .filtro-select::-ms-expand { display: none; }
+    #visor-fotografia img {
+      touch-action: auto;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
   </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col antialiased">
@@ -326,6 +331,12 @@
     </div>
   </footer>
 
+  <div id="visor-fotografia" class="hidden fixed inset-0 z-[100] items-center justify-center bg-slate-950/85 p-3 sm:p-8" role="dialog" aria-modal="true" aria-label="Fotografía ampliada" onclick="cerrarVisorDesdeFondo(event)">
+    <button id="cerrar-visor-fotografia" type="button" class="absolute right-3 top-3 sm:right-6 sm:top-6 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-magenta text-white shadow-lg transition hover:bg-brand-magentaHover focus:outline-none focus:ring-4 focus:ring-white/50" aria-label="Cerrar fotografía ampliada" onclick="cerrarVisorFotografia()">
+      <i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i>
+    </button>
+    <img id="imagen-visor-fotografia" class="max-h-[calc(100dvh-6rem)] max-w-[96vw] object-contain sm:max-h-[calc(100dvh-8rem)] sm:max-w-[92vw]" alt="" />
+  </div>
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
@@ -342,10 +353,47 @@
       "https://images.unsplash.com/photo-1582639510494-c80b5de9f148?w=600",
       "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?w=600"
     ];
+    let elementoImagenVisor = null;
 
     function formatoMXN(monto) {
       return `$${Number(monto).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
     }
+
+    function abrirVisorFotografia(boton) {
+      const imagenTarjeta = boton.querySelector('img');
+      const prenda = prendas.find(p => String(p.id) === boton.dataset.productoId);
+      if (!imagenTarjeta || !prenda) return;
+
+      elementoImagenVisor = boton;
+      const visor = document.getElementById('visor-fotografia');
+      const imagen = document.getElementById('imagen-visor-fotografia');
+      imagen.src = imagenTarjeta.currentSrc || imagenTarjeta.src;
+      imagen.alt = `Fotografía de ${prenda.nombre}`;
+      visor.classList.remove('hidden');
+      visor.classList.add('flex');
+      document.body.classList.add('overflow-hidden');
+      document.getElementById('cerrar-visor-fotografia').focus();
+    }
+
+    function cerrarVisorFotografia() {
+      const visor = document.getElementById('visor-fotografia');
+      if (visor.classList.contains('hidden')) return;
+
+      visor.classList.add('hidden');
+      visor.classList.remove('flex');
+      document.body.classList.remove('overflow-hidden');
+      document.getElementById('imagen-visor-fotografia').removeAttribute('src');
+      if (elementoImagenVisor?.isConnected) elementoImagenVisor.focus();
+      elementoImagenVisor = null;
+    }
+
+    function cerrarVisorDesdeFondo(event) {
+      if (event.target === event.currentTarget) cerrarVisorFotografia();
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') cerrarVisorFotografia();
+    });
 
     function cambiarVistaPublica(vista) {
       const vCat = document.getElementById('vista-catalogo');
@@ -504,7 +552,9 @@
         return `
           <div class="bg-white rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between ${agotado ? 'opacity-60' : ''}">
             <div class="relative overflow-hidden group">
-              <img src="${p.imagenUrl || fotosDefault[idx % 3]}" class="w-full h-80 object-cover object-center group-hover:scale-105 transition duration-300" />
+              <button type="button" data-producto-id="${p.id}" onclick="abrirVisorFotografia(this)" aria-label="Ampliar fotografía" aria-haspopup="dialog" class="block w-full cursor-zoom-in text-left">
+                <img src="${p.imagenUrl || fotosDefault[idx % 3]}" alt="Fotografía del producto" class="w-full h-80 object-cover object-center group-hover:scale-105 transition duration-300" />
+              </button>
               
               <!-- Badge de Talla -->
               <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-black px-2.5 py-1 rounded-xl shadow-sm border border-slate-200">
