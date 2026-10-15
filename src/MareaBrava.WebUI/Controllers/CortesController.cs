@@ -12,6 +12,7 @@ namespace MareaBrava.WebUI.Controllers;
 [Microsoft.AspNetCore.Authorization.Authorize]
 public class CortesController : ControllerBase
 {
+    private static readonly TimeZoneInfo ZonaHorariaMexico = TimeZoneInfo.FindSystemTimeZoneById("America/Mexico_City");
     private readonly MareaBravaDbContext _context;
 
     public CortesController(MareaBravaDbContext context)
@@ -130,15 +131,48 @@ public class CortesController : ControllerBase
     // Historial de Cortes (para la Dueña)
     [HttpGet("historial")]
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
-    public async Task<IActionResult> ObtenerHistorial()
+    public async Task<IActionResult> ObtenerHistorial([FromQuery] DateOnly? fecha)
     {
-        var cortes = await _context.CortesCaja
+        IQueryable<CorteCaja> query = _context.CortesCaja
             .Include(c => c.Usuario)
-            .OrderByDescending(c => c.FechaApertura)
-            .Take(30)
-            .ToListAsync();
+            .OrderByDescending(c => c.FechaApertura);
 
-        return Ok(cortes);
+        if (!fecha.HasValue)
+        {
+            var ultimosCortes = await query.Take(30).ToListAsync();
+            return Ok(ultimosCortes);
+        }
+
+        var inicioLocal = DateTime.SpecifyKind(fecha.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        var finLocal = DateTime.SpecifyKind(fecha.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        var inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, ZonaHorariaMexico);
+        var finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, ZonaHorariaMexico);
+
+        var cortes = await query
+            .Where(c => c.FechaApertura >= inicioUtc && c.FechaApertura < finUtc)
+            .ToListAsync();
+        return Ok(cortes.Select(c =>
+        {
+            var fechaAperturaUtc = DateTime.SpecifyKind(c.FechaApertura, DateTimeKind.Utc);
+            var fechaCierreUtc = c.FechaCierre.HasValue
+                ? DateTime.SpecifyKind(c.FechaCierre.Value, DateTimeKind.Utc)
+                : (DateTime?)null;
+
+            return new
+            {
+                c.Id,
+                fechaOperacion = TimeZoneInfo.ConvertTimeFromUtc(fechaAperturaUtc, ZonaHorariaMexico).ToString("yyyy-MM-dd"),
+                fechaApertura = fechaAperturaUtc,
+                usuarioApertura = c.Usuario.NombreCompleto,
+                usuarioCierre = (string?)null,
+                fechaCierre = fechaCierreUtc,
+                c.FondoInicial,
+                c.TotalEsperadoEfectivo,
+                c.EfectivoRealContado,
+                c.Diferencia,
+                c.Abierto
+            };
+        }));
     }
 }
 

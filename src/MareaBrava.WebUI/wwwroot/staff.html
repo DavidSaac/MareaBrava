@@ -420,6 +420,47 @@
         </div>
       </div>
 
+      <!-- Historial diario de apertura y cierre de caja -->
+      <section class="bg-white rounded-3xl border border-brand-borderCream shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-brand-borderCream flex flex-col sm:flex-row justify-between gap-3 sm:items-center">
+          <div>
+            <h3 class="font-serif font-black text-xl text-slate-900">Historial diario de caja</h3>
+            <p class="text-xs text-slate-500">La fecha de operación corresponde al día local de apertura (America/Mexico_City).</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="filtro-fecha-cortes" class="text-xs font-bold text-slate-600">Fecha</label>
+            <input type="date" id="filtro-fecha-cortes" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700" />
+            <button onclick="cargarHistorialCortes()" class="bg-brand-magenta text-white px-3 py-2 rounded-lg text-xs font-black hover:bg-brand-magentaHover transition" aria-label="Consultar historial de caja">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+        </div>
+        <p class="px-5 pt-4 text-xs text-amber-800">
+          Los importes finales son los guardados al cerrar. Para cajas abiertas aún no hay arqueo; las ventas no están vinculadas directamente a un corte, por lo que aquí no se recalculan.
+        </p>
+        <div class="overflow-x-auto p-5">
+          <table class="w-full min-w-[1050px] text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase">
+              <tr>
+                <th class="p-3">Fecha operación</th>
+                <th class="p-3">Apertura</th>
+                <th class="p-3">Abrió</th>
+                <th class="p-3 text-right">Fondo inicial</th>
+                <th class="p-3">Cierre</th>
+                <th class="p-3">Cerró</th>
+                <th class="p-3 text-right">Efectivo esperado</th>
+                <th class="p-3 text-right">Efectivo contado</th>
+                <th class="p-3 text-right">Diferencia</th>
+                <th class="p-3">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-historial-cortes" class="divide-y divide-brand-borderCream/60">
+              <tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">Selecciona una fecha para consultar.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- Métricas Financieras (Admin) -->
       <div id="panel-metricas-admin" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <div class="bg-white p-5 rounded-3xl border border-brand-borderCream shadow-sm space-y-1">
@@ -1321,7 +1362,10 @@
         if (btn) btn.className = (key === sec ? activeClass : inactiveClass) + (btn.classList.contains('hidden') ? ' hidden' : '');
       }
 
-      if (sec === 'ventas' && esAdmin()) cargarHistorialVentas();
+      if (sec === 'ventas' && esAdmin()) {
+        cargarHistorialVentas();
+        cargarHistorialCortes();
+      }
       if (sec === 'admin' && esAdmin()) aplicarFiltrosAdmin();
       if (sec === 'usuarios' && esAdmin()) cargarUsuariosEquipo();
       if (sec === 'informacion-tienda' && esAdmin()) cargarInformacionTienda();
@@ -1524,6 +1568,70 @@
         renderTablaVentas(historialVentas);
       } catch (e) {
         console.error("Error al cargar ventas:", e);
+      }
+    }
+
+    function fechaActualMexico() {
+      const partes = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(new Date());
+      const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+      return `${valores.year}-${valores.month}-${valores.day}`;
+    }
+
+    function formatoHoraMexico(fecha) {
+      if (!fecha) return '—';
+      return new Intl.DateTimeFormat('es-MX', {
+        timeZone: 'America/Mexico_City',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(fecha));
+    }
+
+    async function cargarHistorialCortes() {
+      if (!esAdmin()) return;
+
+      const inputFecha = document.getElementById('filtro-fecha-cortes');
+      if (!inputFecha.value) inputFecha.value = fechaActualMexico();
+      const tbody = document.getElementById('tabla-historial-cortes');
+      tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">Consultando cortes...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/cortes/historial?fecha=${encodeURIComponent(inputFecha.value)}`);
+        if (!res.ok) throw new Error(`No se pudo consultar el historial de caja (HTTP ${res.status}).`);
+        const cortes = await res.json();
+        if (!Array.isArray(cortes)) throw new Error('La respuesta del historial de caja no tiene el formato esperado.');
+
+        if (!cortes.length) {
+          tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">No hay cortes para esta fecha.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = cortes.map(corte => {
+          const abierto = Boolean(corte.abierto);
+          const importeCierre = valor => abierto ? 'Pendiente' : formatoMXN(valor);
+          const fechaCierre = corte.fechaCierre ? formatoHoraMexico(corte.fechaCierre) : '—';
+
+          return `
+            <tr class="text-slate-700">
+              <td class="p-3 whitespace-nowrap">${escHtml(corte.fechaOperacion)}</td>
+              <td class="p-3 whitespace-nowrap">${escHtml(formatoHoraMexico(corte.fechaApertura))}</td>
+              <td class="p-3">${escHtml(corte.usuarioApertura || 'No registrado')}</td>
+              <td class="p-3 text-right whitespace-nowrap">${formatoMXN(corte.fondoInicial)}</td>
+              <td class="p-3 whitespace-nowrap">${escHtml(fechaCierre)}</td>
+              <td class="p-3">${escHtml(corte.usuarioCierre || 'No registrado')}</td>
+              <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.totalEsperadoEfectivo)}</td>
+              <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.efectivoRealContado)}</td>
+              <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.diferencia)}</td>
+              <td class="p-3"><span class="rounded-full px-2 py-1 font-bold ${abierto ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${abierto ? 'Abierto' : 'Cerrado'}</span></td>
+            </tr>`;
+        }).join('');
+      } catch (error) {
+        console.error('Error al cargar historial de caja:', error);
+        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-rose-600 font-semibold">No se pudo cargar el historial de caja. Intenta nuevamente.</td></tr>';
       }
     }
 
