@@ -27,9 +27,12 @@ public class PrendasController : ControllerBase
 
     [HttpGet]
     [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-    public async Task<IActionResult> ObtenerTodas([FromQuery] int? tipo, [FromQuery] int? talla, [FromQuery] string? q)
+    public async Task<IActionResult> ObtenerTodas([FromQuery] int? tipo, [FromQuery] int? talla, [FromQuery] string? q, [FromQuery] bool soloConStock = false)
     {
         var query = _context.Prendas.Where(p => p.Activo).AsQueryable();
+
+        if (soloConStock)
+            query = query.Where(p => p.StockActual > 0);
 
         if (tipo.HasValue && tipo.Value > 0)
             query = query.Where(p => (int)p.TipoPieza == tipo.Value);

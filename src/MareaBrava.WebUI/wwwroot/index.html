@@ -420,7 +420,7 @@
 
     async function cargarCatalogo() {
       try {
-        const [res, categoriasRes, informacionRes] = await Promise.all([fetch('/api/prendas'), fetch('/api/categorias'), fetch('/api/informaciontienda')]);
+        const [res, categoriasRes, informacionRes] = await Promise.all([fetch('/api/prendas?soloConStock=true'), fetch('/api/categorias'), fetch('/api/informaciontienda')]);
         prendas = (await res.json()).map(p => ({ ...p, imagenUrl: mediaUrl(p.imagenUrl) }));
         categorias = await categoriasRes.json();
         if (informacionRes.ok) {
