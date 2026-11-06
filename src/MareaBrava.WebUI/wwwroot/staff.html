@@ -2985,15 +2985,42 @@
     }
 
     function filtrarPOS() {
-      const q = document.getElementById('filtro-pos').value.toLowerCase();
-      const coincidencias = catalogo.filter(p => p.stockActual > 0 && (
-        p.nombre.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        (p.color || '').toLowerCase().includes(q) ||
-        (p.categoriaNombre || '').toLowerCase().includes(q)
-      ));
-      renderPOS(coincidencias);
+      const q = document.getElementById('filtro-pos').value.trim().toLowerCase();
+      const coincidencias = obtenerCoincidenciasPOS(q);
+      renderPOS(q.length < 3 ? [] : coincidencias);
       renderSugerenciasPOS(q, coincidencias);
+    }
+
+    function obtenerCoincidenciasPOS(termino) {
+      const q = termino.trim().toLowerCase();
+      const disponibles = catalogo.filter(p => p.stockActual > 0);
+      if (!q) return [];
+
+      const exactaSKU = disponibles.find(p => (p.sku || '').toLowerCase() === q);
+      if (exactaSKU) return [exactaSKU];
+
+      if (q.length < 3) return [];
+
+      return disponibles
+        .map(p => {
+          const sku = (p.sku || '').toLowerCase();
+          const nombre = (p.nombre || '').toLowerCase();
+          const color = (p.color || '').toLowerCase();
+          const categoria = (p.categoriaNombre || '').toLowerCase();
+          let relevancia = 0;
+
+          if (sku.startsWith(q)) relevancia = 80;
+          else if (nombre.startsWith(q)) relevancia = 70;
+          else if (sku.includes(q)) relevancia = 60;
+          else if (nombre.includes(q)) relevancia = 50;
+          else if (color.includes(q)) relevancia = 20;
+          else if (categoria.includes(q)) relevancia = 10;
+
+          return { p, relevancia };
+        })
+        .filter(item => item.relevancia > 0)
+        .sort((a, b) => b.relevancia - a.relevancia || a.p.nombre.localeCompare(b.p.nombre, 'es'))
+        .map(item => item.p);
     }
 
     function renderSugerenciasPOS(termino, coincidencias) {
@@ -3004,7 +3031,7 @@
         return;
       }
 
-      sugerencias.innerHTML = coincidencias.slice(0, 8).map(p => `
+      sugerencias.innerHTML = coincidencias.slice(0, 5).map(p => `
         <button type="button" onclick="seleccionarSugerenciaPOS(${p.id})" class="w-full text-left px-4 py-3 hover:bg-pink-50 border-b border-slate-100 last:border-b-0 flex items-center justify-between gap-3">
           <span class="min-w-0"><strong class="block truncate text-slate-800">${escHtml(p.nombre)}</strong><small class="text-slate-500">${escHtml(p.sku)} · ${escHtml(p.color || '')}</small></span>
           <span class="shrink-0 font-black text-brand-magenta">${formatoMXN(p.precioVenta)}</span>
