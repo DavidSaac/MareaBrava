@@ -131,27 +131,63 @@ public class CortesController : ControllerBase
     // Historial de Cortes (para la Dueña)
     [HttpGet("historial")]
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrador")]
-    public async Task<IActionResult> ObtenerHistorial([FromQuery] DateOnly? fecha)
+    public async Task<IActionResult> ObtenerHistorial([FromQuery] DateOnly? fecha, [FromQuery] DateOnly? desde, [FromQuery] DateOnly? hasta, [FromQuery] bool todo = false)
     {
         IQueryable<CorteCaja> query = _context.CortesCaja
             .Include(c => c.Usuario)
             .OrderByDescending(c => c.FechaApertura);
 
-        if (!fecha.HasValue)
+        if (!fecha.HasValue && !desde.HasValue && !hasta.HasValue && !todo)
         {
             var ultimosCortes = await query.Take(30).ToListAsync();
             return Ok(ultimosCortes);
         }
 
-        var inicioLocal = DateTime.SpecifyKind(fecha.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
-        var finLocal = DateTime.SpecifyKind(fecha.Value.AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
-        var inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, ZonaHorariaMexico);
-        var finUtc = TimeZoneInfo.ConvertTimeToUtc(finLocal, ZonaHorariaMexico);
+        if (todo)
+        {
+            var todosLosCortes = await query.ToListAsync();
+            return Ok(ProyectarHistorial(todosLosCortes));
+        }
+
+        DateTime inicioUtc;
+        DateTime finUtc;
+
+        if (fecha.HasValue)
+        {
+            inicioUtc = InicioDiaUtc(fecha.Value);
+            finUtc = InicioDiaUtc(fecha.Value.AddDays(1));
+        }
+        else if (desde.HasValue && hasta.HasValue)
+        {
+            inicioUtc = InicioDiaUtc(desde.Value);
+            finUtc = InicioDiaUtc(hasta.Value.AddDays(1));
+        }
+        else if (desde.HasValue)
+        {
+            inicioUtc = InicioDiaUtc(desde.Value);
+            finUtc = DateTime.MaxValue;
+        }
+        else
+        {
+            inicioUtc = DateTime.MinValue;
+            finUtc = InicioDiaUtc(hasta!.Value.AddDays(1));
+        }
 
         var cortes = await query
             .Where(c => c.FechaApertura >= inicioUtc && c.FechaApertura < finUtc)
             .ToListAsync();
-        return Ok(cortes.Select(c =>
+        return Ok(ProyectarHistorial(cortes));
+    }
+
+    private DateTime InicioDiaUtc(DateOnly fecha)
+    {
+        var local = DateTime.SpecifyKind(fecha.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(local, ZonaHorariaMexico);
+    }
+
+    private IEnumerable<object> ProyectarHistorial(IEnumerable<CorteCaja> cortes)
+    {
+        return cortes.Select(c =>
         {
             var fechaAperturaUtc = DateTime.SpecifyKind(c.FechaApertura, DateTimeKind.Utc);
             var fechaCierreUtc = c.FechaCierre.HasValue
@@ -167,12 +203,16 @@ public class CortesController : ControllerBase
                 usuarioCierre = (string?)null,
                 fechaCierre = fechaCierreUtc,
                 c.FondoInicial,
+                c.VentasEfectivo,
+                c.VentasTarjeta,
+                c.VentasTransferencia,
                 c.TotalEsperadoEfectivo,
                 c.EfectivoRealContado,
                 c.Diferencia,
-                c.Abierto
+                c.Abierto,
+                observaciones = c.Observaciones
             };
-        }));
+        });
     }
 }
 

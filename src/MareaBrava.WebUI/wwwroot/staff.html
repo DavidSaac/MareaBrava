@@ -427,12 +427,19 @@
             <h3 class="font-serif font-black text-xl text-slate-900">Historial diario de caja</h3>
             <p class="text-xs text-slate-500">La fecha de operación corresponde al día local de apertura (America/Mexico_City).</p>
           </div>
-          <div class="flex items-center gap-2">
-            <label for="filtro-fecha-cortes" class="text-xs font-bold text-slate-600">Fecha</label>
-            <input type="date" id="filtro-fecha-cortes" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700" />
-            <button onclick="cargarHistorialCortes()" class="bg-brand-magenta text-white px-3 py-2 rounded-lg text-xs font-black hover:bg-brand-magentaHover transition" aria-label="Consultar historial de caja">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="establecerRangoCortes('hoy')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">Hoy</button>
+            <button onclick="establecerRangoCortes('semana')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">Esta semana</button>
+            <button onclick="establecerRangoCortes('mes')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">Este mes</button>
+            <button onclick="establecerRangoCortes('todo')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">Todo</button>
+            <div class="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs">
+              <input type="date" id="filtro-fecha-cortes-desde" onchange="todoCortes=false" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" aria-label="Fecha inicial de cortes" />
+              <span class="text-slate-400 font-bold">a</span>
+              <input type="date" id="filtro-fecha-cortes-hasta" onchange="todoCortes=false" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" aria-label="Fecha final de cortes" />
+              <button onclick="cargarHistorialCortes()" class="bg-brand-magenta text-white px-2.5 py-1 rounded-lg font-black hover:bg-brand-magentaHover transition" aria-label="Consultar historial de caja">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
           </div>
         </div>
         <p class="px-5 pt-4 text-xs text-amber-800">
@@ -1034,6 +1041,8 @@
     let usuarioStaff = JSON.parse(localStorage.getItem('mb_staff_user')) || null;
     let estadoTurnoCaja = null;
     let historialVentas = [];
+    let historialCortes = [];
+    let todoCortes = false;
     let gastosPeriodo = [];
     let prendasAdminFiltradas = [];
     let listaUsuarios = [];
@@ -1591,22 +1600,76 @@
       }).format(new Date(fecha));
     }
 
+    function establecerRangoCortes(tipo) {
+      if (!esAdmin()) return;
+      const hoyIso = fechaActualMexico();
+      const hoy = new Date(`${hoyIso}T12:00:00`);
+      const formatoYMD = fecha => {
+        const y = fecha.getFullYear();
+        const m = String(fecha.getMonth() + 1).padStart(2, '0');
+        const d = String(fecha.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+      const desde = document.getElementById('filtro-fecha-cortes-desde');
+      const hasta = document.getElementById('filtro-fecha-cortes-hasta');
+      todoCortes = tipo === 'todo';
+
+      if (tipo === 'hoy') {
+        desde.value = hoyIso;
+        hasta.value = hoyIso;
+      } else if (tipo === 'semana') {
+        const diaSemana = hoy.getDay() || 7;
+        const inicio = new Date(hoy);
+        inicio.setDate(hoy.getDate() - diaSemana + 1);
+        desde.value = formatoYMD(inicio);
+        hasta.value = hoyIso;
+      } else if (tipo === 'mes') {
+        const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1, 12);
+        desde.value = formatoYMD(inicio);
+        hasta.value = hoyIso;
+      } else {
+        desde.value = '';
+        hasta.value = '';
+      }
+      cargarHistorialCortes();
+    }
+
     async function cargarHistorialCortes() {
       if (!esAdmin()) return;
 
-      const inputFecha = document.getElementById('filtro-fecha-cortes');
-      if (!inputFecha.value) inputFecha.value = fechaActualMexico();
+      const inputDesde = document.getElementById('filtro-fecha-cortes-desde');
+      const inputHasta = document.getElementById('filtro-fecha-cortes-hasta');
+      if (!inputDesde.value && !inputHasta.value && !todoCortes) {
+        inputDesde.value = fechaActualMexico();
+        inputHasta.value = fechaActualMexico();
+      }
+      const desde = inputDesde.value;
+      const hasta = inputHasta.value;
       const tbody = document.getElementById('tabla-historial-cortes');
       tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">Consultando cortes...</td></tr>';
 
+      if (desde && hasta && desde > hasta) {
+        historialCortes = [];
+        tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-amber-700 font-semibold">La fecha inicial no puede ser posterior a la fecha final.</td></tr>';
+        return;
+      }
+
+      let url = '/api/cortes/historial';
+      const params = [];
+      if (desde) params.push(`desde=${encodeURIComponent(desde)}`);
+      if (hasta) params.push(`hasta=${encodeURIComponent(hasta)}`);
+      if (!desde && !hasta) params.push('todo=true');
+      if (params.length) url += `?${params.join('&')}`;
+
       try {
-        const res = await fetch(`/api/cortes/historial?fecha=${encodeURIComponent(inputFecha.value)}`);
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`No se pudo consultar el historial de caja (HTTP ${res.status}).`);
         const cortes = await res.json();
         if (!Array.isArray(cortes)) throw new Error('La respuesta del historial de caja no tiene el formato esperado.');
+        historialCortes = cortes;
 
         if (!cortes.length) {
-          tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">No hay cortes para esta fecha.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-slate-400 font-semibold">No hay cortes para el periodo seleccionado.</td></tr>';
           return;
         }
 
@@ -1614,6 +1677,9 @@
           const abierto = Boolean(corte.abierto);
           const importeCierre = valor => abierto ? 'Pendiente' : formatoMXN(valor);
           const fechaCierre = corte.fechaCierre ? formatoHoraMexico(corte.fechaCierre) : '—';
+          const accion = abierto
+            ? '<span class="text-slate-400">No disponible</span>'
+            : `<button type="button" onclick="reimprimirComprobanteCorte(${corte.id})" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">Reimprimir</button>`;
 
           return `
             <tr class="text-slate-700">
@@ -1626,11 +1692,12 @@
               <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.totalEsperadoEfectivo)}</td>
               <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.efectivoRealContado)}</td>
               <td class="p-3 text-right whitespace-nowrap">${importeCierre(corte.diferencia)}</td>
-              <td class="p-3"><span class="rounded-full px-2 py-1 font-bold ${abierto ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${abierto ? 'Abierto' : 'Cerrado'}</span></td>
+              <td class="p-3"><div class="flex items-center gap-2"><span class="rounded-full px-2 py-1 font-bold ${abierto ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${abierto ? 'Abierto' : 'Cerrado'}</span>${accion}</div></td>
             </tr>`;
         }).join('');
       } catch (error) {
         console.error('Error al cargar historial de caja:', error);
+        historialCortes = [];
         tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-rose-600 font-semibold">No se pudo cargar el historial de caja. Intenta nuevamente.</td></tr>';
       }
     }
@@ -1925,6 +1992,43 @@
       document.body.classList.add(modo);
       void document.body.offsetHeight;
       requestAnimationFrame(() => window.print());
+    }
+
+    function renderComprobanteCorte(corte, atendio, esReimpresion = false) {
+      const cont = document.getElementById('ticket-impresion-contenedor');
+      const fecha = corte.fechaCierre || corte.FechaCierre;
+      cont.innerHTML = `
+        <div class="text-center pb-3 border-b border-black">
+          <p class="font-bold text-sm">MAREA BRAVA</p>
+          <p class="text-[10px]">${esReimpresion ? 'COPIA / REIMPRESIÓN DE CORTE DE CAJA' : 'CORTE DE CAJA / CIERRE DE TURNO'}</p>
+        </div>
+        <div class="py-2 space-y-1 text-[11px] border-b border-black">
+          <p>Fecha: ${fecha ? formatoFechaHoraMexico(fecha) : 'No disponible'}</p>
+          <p>Atendió: ${escHtml(atendio || 'No registrado')}</p>
+        </div>
+        <div class="py-2 space-y-1 text-[11px] border-b border-black">
+          <div class="flex justify-between"><span>Fondo Inicial:</span><span>${formatoMXN(corte.fondoInicial)}</span></div>
+          <div class="flex justify-between"><span>Ventas Efectivo:</span><span>${formatoMXN(corte.ventasEfectivo ?? corte.VentasEfectivo)}</span></div>
+          <div class="flex justify-between"><span>Ventas Tarjeta:</span><span>${formatoMXN(corte.ventasTarjeta ?? corte.VentasTarjeta)}</span></div>
+          <div class="flex justify-between"><span>Ventas Transf:</span><span>${formatoMXN(corte.ventasTransferencia ?? corte.VentasTransferencia ?? 0)}</span></div>
+          <div class="flex justify-between font-bold pt-1 border-t border-dashed border-black"><span>Esperado Efectivo:</span><span>${formatoMXN(corte.totalEsperadoEfectivo)}</span></div>
+        </div>
+        <div class="py-2 space-y-1 text-[11px] border-b border-black font-bold">
+          <div class="flex justify-between"><span>Efectivo Contado:</span><span>${formatoMXN(corte.efectivoRealContado)}</span></div>
+          <div class="flex justify-between"><span>Diferencia:</span><span>${formatoMXN(corte.diferencia)}</span></div>
+        </div>
+        <div class="pt-3 text-center text-[10px]">
+          <p>_____________________________</p>
+          <p class="mt-1">Firma del Responsable</p>
+        </div>
+      `;
+    }
+
+    function reimprimirComprobanteCorte(corteId) {
+      const corte = historialCortes.find(item => item.id === corteId);
+      if (!corte || corte.abierto) return;
+      renderComprobanteCorte(corte, corte.usuarioCierre || 'No registrado', true);
+      iniciarImpresion('modo-impresion-ticket');
     }
 
     function reimprimirTicketVenta(ventaId) {
@@ -2525,32 +2629,7 @@
           const corte = await res.json();
           cerrarModalCierre();
           
-          const cont = document.getElementById('ticket-impresion-contenedor');
-          cont.innerHTML = `
-            <div class="text-center pb-3 border-b border-black">
-              <p class="font-bold text-sm">MAREA BRAVA</p>
-              <p class="text-[10px]">CORTE DE CAJA / CIERRE DE TURNO</p>
-            </div>
-            <div class="py-2 space-y-1 text-[11px] border-b border-black">
-              <p>Fecha: ${formatoFechaHoraMexico(corte.fechaCierre || new Date().toISOString())}</p>
-              <p>Atendió: ${usuarioStaff.nombreCompleto}</p>
-            </div>
-            <div class="py-2 space-y-1 text-[11px] border-b border-black">
-              <div class="flex justify-between"><span>Fondo Inicial:</span><span>${formatoMXN(corte.fondoInicial)}</span></div>
-              <div class="flex justify-between"><span>Ventas Efectivo:</span><span>${formatoMXN(corte.ventasEfectivo)}</span></div>
-              <div class="flex justify-between"><span>Ventas Tarjeta:</span><span>${formatoMXN(corte.ventasTarjeta)}</span></div>
-              <div class="flex justify-between"><span>Ventas Transf:</span><span>${formatoMXN(corte.ventasTransferencia)}</span></div>
-              <div class="flex justify-between font-bold pt-1 border-t border-dashed border-black"><span>Esperado Efectivo:</span><span>${formatoMXN(corte.totalEsperadoEfectivo)}</span></div>
-            </div>
-            <div class="py-2 space-y-1 text-[11px] border-b border-black font-bold">
-              <div class="flex justify-between"><span>Efectivo Contado:</span><span>${formatoMXN(corte.efectivoRealContado)}</span></div>
-              <div class="flex justify-between"><span>Diferencia:</span><span>${formatoMXN(corte.diferencia)}</span></div>
-            </div>
-            <div class="pt-3 text-center text-[10px]">
-              <p>_____________________________</p>
-              <p class="mt-1">Firma del Responsable</p>
-            </div>
-          `;
+          renderComprobanteCorte(corte, usuarioStaff.nombreCompleto, false);
 
           iniciarImpresion('modo-impresion-ticket');
 
