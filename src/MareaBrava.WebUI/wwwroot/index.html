@@ -546,7 +546,7 @@
 
       grid.innerHTML = paginaProductos.map((p, idx) => {
         const agotado = p.stockActual <= 0;
-        const mensajeWa = encodeURIComponent(`¡Hola Marea Brava! Me interesa el modelo "${p.nombre}" en talla ${tallasMap[p.talla] || 'M'} (${p.color}) SKU: ${p.sku}. ¿Me podrían dar más detalles?`);
+        const mensajeWa = encodeURIComponent(`¡Hola Marea Brava! Me interesa el modelo "${p.nombre}" en talla ${tallasMap[p.talla] || 'M'} (${p.color}) SKU: ${p.sku}. ¿Está disponible?`);
         const linkWa = `https://wa.me/527774773873?text=${mensajeWa}`;
 
         return `
