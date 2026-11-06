@@ -388,38 +388,6 @@
     <!-- ================= SECCIÓN 2: REPORTES & VENTAS (SOLO ADMIN) ================= -->
     <main id="seccion-ventas" class="hidden w-full px-6 py-8 flex-1 space-y-6">
       
-      <!-- Barra de Filtros de Fecha -->
-      <div class="bg-white p-5 rounded-3xl border border-brand-borderCream shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h2 class="font-serif font-black text-2xl text-slate-900">Analítica & Reportes de Ventas</h2>
-          <p class="text-xs text-slate-500 font-medium">Selecciona un rango temporal para calcular rendimientos</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <button onclick="establecerRangoFecha('hoy')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Hoy</button>
-          <button onclick="establecerRangoFecha('semana')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Esta Semana</button>
-          <button onclick="establecerRangoFecha('mes')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Este Mes</button>
-          <button onclick="establecerRangoFecha('todo')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Todo</button>
-
-          <div class="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs">
-            <input type="date" id="filtro-fecha-desde" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" />
-            <span class="text-slate-400 font-bold">a</span>
-            <input type="date" id="filtro-fecha-hasta" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" />
-            <button onclick="cargarHistorialVentas()" class="bg-brand-magenta text-white px-2.5 py-1 rounded-lg font-black hover:bg-brand-magentaHover transition">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-          </div>
-
-          <button onclick="exportarVentasExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
-            <i class="fa-solid fa-file-excel"></i>
-            <span>Excel Filtrado</span>
-          </button>
-          <button onclick="registrarGasto()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
-            <i class="fa-solid fa-receipt"></i><span>Registrar gasto</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Historial diario de apertura y cierre de caja -->
       <section class="bg-white rounded-3xl border border-brand-borderCream shadow-sm overflow-hidden">
         <div class="p-5 border-b border-brand-borderCream flex flex-col sm:flex-row justify-between gap-3 sm:items-center">
@@ -464,6 +432,38 @@
           </table>
         </div>
       </section>
+
+      <!-- Barra de Filtros de Fecha -->
+      <div class="bg-white p-5 rounded-3xl border border-brand-borderCream shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h2 class="font-serif font-black text-2xl text-slate-900">Analítica & Reportes de Ventas</h2>
+          <p class="text-xs text-slate-500 font-medium">Selecciona un rango temporal para calcular rendimientos</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <button onclick="establecerRangoFecha('hoy')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Hoy</button>
+          <button onclick="establecerRangoFecha('semana')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Esta Semana</button>
+          <button onclick="establecerRangoFecha('mes')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Este Mes</button>
+          <button onclick="establecerRangoFecha('todo')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Todo</button>
+
+          <div class="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs">
+            <input type="date" id="filtro-fecha-desde" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" />
+            <span class="text-slate-400 font-bold">a</span>
+            <input type="date" id="filtro-fecha-hasta" class="bg-transparent font-bold text-slate-700 focus:outline-none px-1" />
+            <button onclick="cargarHistorialVentas()" class="bg-brand-magenta text-white px-2.5 py-1 rounded-lg font-black hover:bg-brand-magentaHover transition">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+
+          <button onclick="exportarVentasExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Excel Filtrado</span>
+          </button>
+          <button onclick="registrarGasto()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+            <i class="fa-solid fa-receipt"></i><span>Registrar gasto</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Métricas Financieras (Admin) -->
       <div id="panel-metricas-admin" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
