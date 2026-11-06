@@ -76,6 +76,7 @@
         background-attachment: scroll;
         background-size: auto 100vh;
         background-position: center top;
+        overflow-x: hidden;
       }
       body::before { background: rgba(255, 250, 243, 0.22); }
     }
@@ -97,23 +98,23 @@
 <body class="font-sans min-h-screen flex flex-col antialiased">
 
   <!-- ================= TOPBAR ================= -->
-  <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-brand-borderCream px-4 sm:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-sm">
-    <div class="flex items-center gap-2">
+  <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-brand-borderCream px-3 sm:px-8 py-2.5 sm:py-3.5 flex flex-row flex-wrap sm:flex-nowrap justify-between items-center gap-2 sm:gap-3 shadow-sm">
+    <div class="flex items-center gap-2 min-w-0 flex-1 sm:flex-none">
       <div class="text-brand-magenta text-xs font-black tracking-widest hidden sm:block">☀</div>
-      <h1 class="font-brandTitle font-black text-2xl sm:text-3xl text-brand-magenta tracking-wider">MAREA BRAVA</h1>
+      <h1 class="font-brandTitle font-black text-xl sm:text-3xl text-brand-magenta tracking-wide sm:tracking-wider whitespace-nowrap">MAREA BRAVA</h1>
     </div>
 
     <!-- Pestañas Principales -->
-    <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-bold">
-      <button onclick="cambiarVistaPublica('catalogo')" id="btn-tab-catalogo" class="px-4 py-2 rounded-xl bg-brand-magenta text-white font-black shadow-sm transition">
-        <i class="fa-solid fa-shirt mr-1.5"></i>Colección
+    <div class="order-3 sm:order-none w-full sm:w-auto grid grid-cols-2 sm:flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 text-[11px] sm:text-xs font-bold">
+      <button onclick="cambiarVistaPublica('catalogo')" id="btn-tab-catalogo" class="px-2 sm:px-4 py-2 rounded-xl bg-brand-magenta text-white font-black shadow-sm transition">
+        <i class="fa-solid fa-shirt mr-1"></i>Colección
       </button>
-      <button onclick="cambiarVistaPublica('ubicacion')" id="btn-tab-ubicacion" class="px-4 py-2 rounded-xl text-slate-700 hover:text-brand-magenta transition">
-        <i class="fa-solid fa-location-dot mr-1.5 text-brand-magenta"></i>Info y Ubicación
+      <button onclick="cambiarVistaPublica('ubicacion')" id="btn-tab-ubicacion" class="px-2 sm:px-4 py-2 rounded-xl text-slate-700 hover:text-brand-magenta transition">
+        <i class="fa-solid fa-location-dot mr-1 text-brand-magenta"></i>Info y Ubicación
       </button>
     </div>
 
-    <a href="https://wa.me/527774773873?text=Hola%20Marea%20Brava,%20deseo%20información%20del%20catálogo" target="_blank" class="bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 px-4 py-2 rounded-full text-xs font-extrabold flex items-center gap-2 transition shadow-sm">
+    <a href="https://wa.me/527774773873?text=Hola%20Marea%20Brava,%20deseo%20información%20del%20catálogo" target="_blank" class="bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 px-2.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs font-extrabold flex items-center gap-1.5 sm:gap-2 transition shadow-sm shrink-0">
       <i class="fa-brands fa-whatsapp text-base text-emerald-600"></i>
       <span>WhatsApp</span>
     </a>
@@ -121,10 +122,16 @@
 
 
   <!-- ================= VISTA 1: CATÁLOGO DE CLIENTAS ================= -->
-  <div id="vista-catalogo" class="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div id="vista-catalogo" class="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-8 py-4 sm:py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8">
     
     <!-- BARRA LATERAL DE FILTROS -->
-    <aside class="lg:col-span-3 space-y-5">
+    <aside class="lg:col-span-3 space-y-3 lg:space-y-5">
+      <button type="button" id="btn-panel-filtros" onclick="togglePanelFiltros()" aria-expanded="false" aria-controls="panel-filtros" class="lg:hidden w-full bg-white border border-brand-borderCream rounded-2xl px-4 py-3 shadow-sm flex items-center justify-between text-xs font-black text-slate-700">
+        <span><i class="fa-solid fa-sliders text-brand-magenta mr-2"></i>Filtros</span>
+        <i id="icono-panel-filtros" class="fa-solid fa-chevron-down text-brand-magenta text-[10px]"></i>
+      </button>
+
+      <div id="panel-filtros" class="hidden lg:block space-y-3 lg:space-y-5">
       
       <!-- Filtro Categoría -->
       <div class="bg-white rounded-3xl p-5 border border-brand-borderCream shadow-sm space-y-3">
@@ -213,16 +220,17 @@
           </select>
         </div>
       </div>
+      </div>
 
     </aside>
 
     <!-- GRID DE PRENDAS -->
-    <main class="lg:col-span-9 space-y-4">
-      <div class="flex justify-between items-center bg-white px-5 py-3 rounded-2xl border border-brand-borderCream shadow-sm text-xs font-bold text-slate-600">
+    <main class="lg:col-span-9 space-y-3 sm:space-y-4 min-w-0">
+      <div class="flex justify-between items-center bg-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-brand-borderCream shadow-sm text-[11px] sm:text-xs font-bold text-slate-600">
         <span id="conteo-catalogo">Cargando modelos...</span>
       </div>
 
-      <div id="grid-catalogo" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+      <div id="grid-catalogo" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4 lg:gap-6"></div>
 
       <div id="paginacion-catalogo" class="hidden flex-wrap justify-center items-center gap-2 bg-white px-5 py-3 rounded-2xl border border-brand-borderCream shadow-sm"></div>
     </main>
@@ -474,8 +482,14 @@
       if (main) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function toggleTallaDropdown() {
-      document.getElementById('panel-tallas').classList.toggle('hidden');
+    function togglePanelFiltros() {
+      const panel = document.getElementById('panel-filtros');
+      const boton = document.getElementById('btn-panel-filtros');
+      const icono = document.getElementById('icono-panel-filtros');
+      const abierto = panel.classList.toggle('hidden');
+      boton.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+      icono.classList.toggle('fa-chevron-down', abierto);
+      icono.classList.toggle('fa-chevron-up', !abierto);
     }
 
     function alternarTalla(id, marcada) {
@@ -550,33 +564,33 @@
         const linkWa = `https://wa.me/527774773873?text=${mensajeWa}`;
 
         return `
-          <div class="bg-white rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between ${agotado ? 'opacity-60' : ''}">
+          <div class="bg-white rounded-2xl sm:rounded-3xl border border-brand-borderCream overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between min-w-0 ${agotado ? 'opacity-60' : ''}">
             <div class="relative overflow-hidden group">
               <button type="button" data-producto-id="${p.id}" onclick="abrirVisorFotografia(this)" aria-label="Ampliar fotografía" aria-haspopup="dialog" class="block w-full cursor-zoom-in text-left">
-                <img src="${p.imagenUrl || fotosDefault[idx % 3]}" alt="Fotografía del producto" class="w-full h-80 object-cover object-center group-hover:scale-105 transition duration-300" />
+                <img src="${p.imagenUrl || fotosDefault[idx % 3]}" alt="Fotografía del producto" class="w-full h-48 sm:h-64 lg:h-80 object-cover object-center group-hover:scale-105 transition duration-300" />
               </button>
               
               <!-- Badge de Talla -->
-              <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-black px-2.5 py-1 rounded-xl shadow-sm border border-slate-200">
+              <span class="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-1 rounded-lg sm:rounded-xl shadow-sm border border-slate-200">
                 Talla: ${tallasMap[p.talla] || 'M'}
               </span>
 
               <!-- Badge SOLO si está Agotado -->
-              ${agotado ? '<span class="absolute top-3 right-3 bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-xl shadow-md uppercase tracking-wider">Agotado</span>' : ''}
+              ${agotado ? '<span class="absolute top-2 right-2 sm:top-3 sm:right-3 bg-rose-600 text-white text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 rounded-lg sm:rounded-xl shadow-md uppercase tracking-wider">Agotado</span>' : ''}
             </div>
 
-            <div class="p-5 space-y-3">
-              <div>
-                <h4 class="font-bold text-slate-900 text-base line-clamp-1">${p.nombre}</h4>
-                <p class="text-xs text-slate-500 font-medium">Color: <strong>${p.color}</strong></p>
+            <div class="p-3 sm:p-5 space-y-2 sm:space-y-3 min-w-0">
+              <div class="min-w-0">
+                <h4 class="font-bold text-slate-900 text-sm sm:text-base leading-tight line-clamp-2 sm:line-clamp-1 min-h-[2.25rem] sm:min-h-0">${p.nombre}</h4>
+                <p class="text-[10px] sm:text-xs text-slate-500 font-medium truncate">Color: <strong>${p.color}</strong></p>
               </div>
 
-              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
-                <span class="text-xl font-black text-slate-900">${formatoMXN(p.precioVenta)}</span>
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-2 border-t border-slate-100">
+                <span class="text-base sm:text-xl font-black text-slate-900 whitespace-nowrap">${formatoMXN(p.precioVenta)}</span>
 
                 ${agotado 
-                  ? '<span class="bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-xs font-black cursor-not-allowed">Sin Stock</span>'
-                  : `<a href="${linkWa}" target="_blank" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition shadow-sm active:scale-95">
+                  ? '<span class="bg-slate-200 text-slate-500 px-2.5 sm:px-4 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-center cursor-not-allowed">Sin Stock</span>'
+                  : `<a href="${linkWa}" target="_blank" class="bg-brand-magenta hover:bg-brand-magentaHover text-white px-2.5 sm:px-4 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 transition shadow-sm active:scale-95 w-full sm:w-auto">
                       <i class="fa-brands fa-whatsapp text-sm"></i>
                       <span>Me interesa</span>
                     </a>`}
