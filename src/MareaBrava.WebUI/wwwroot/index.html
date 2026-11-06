@@ -163,9 +163,9 @@
         </div>
 
         <div class="relative">
-          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" class="w-full h-10 bg-brand-bgLight/60 border border-brand-borderCream rounded-2xl px-3.5 py-2.5 text-xs font-semibold tracking-wide text-slate-600 flex justify-between items-center gap-2 transition-colors focus:border-brand-magenta/50 focus:ring-2 focus:ring-brand-magenta/20 focus:outline-none">
+          <button type="button" onclick="toggleTallaDropdown()" id="btn-talla-dropdown" aria-expanded="false" aria-controls="panel-tallas" class="w-full h-10 bg-brand-bgLight/60 border border-brand-borderCream rounded-2xl px-3.5 py-2.5 text-xs font-semibold tracking-wide text-slate-600 flex justify-between items-center gap-2 transition-colors focus:border-brand-magenta/50 focus:ring-2 focus:ring-brand-magenta/20 focus:outline-none">
             <span id="talla-dropdown-label" class="truncate text-left">Todas las tallas</span>
-            <i class="fa-solid fa-chevron-down text-[9px] text-brand-magenta/40 shrink-0"></i>
+            <i id="icono-talla-dropdown" class="fa-solid fa-chevron-down text-[9px] text-brand-magenta/40 shrink-0"></i>
           </button>
 
           <div id="panel-tallas" class="hidden absolute z-30 mt-1.5 w-full bg-white border border-slate-200 rounded-xl p-2.5 shadow-lg max-h-64 overflow-y-auto custom-scroll grid grid-cols-2 gap-1.5">
@@ -242,7 +242,7 @@
         <div id="filtros-activos" class="hidden mt-2 flex-wrap items-center gap-1.5"></div>
       </div>
 
-      <div id="grid-catalogo" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-5"></div>
+      <div id="grid-catalogo" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-5"></div>
 
       <div id="paginacion-catalogo" class="hidden flex-wrap justify-center items-center gap-2 bg-white px-5 py-3 rounded-2xl border border-brand-borderCream shadow-sm"></div>
     </main>
@@ -579,11 +579,26 @@
       }
     }
 
+    function toggleTallaDropdown() {
+      const panel = document.getElementById('panel-tallas');
+      const btn = document.getElementById('btn-talla-dropdown');
+      const icono = document.getElementById('icono-talla-dropdown');
+      const abierto = panel.classList.toggle('hidden');
+
+      btn.setAttribute('aria-expanded', abierto ? 'false' : 'true');
+      icono.classList.toggle('fa-chevron-down', abierto);
+      icono.classList.toggle('fa-chevron-up', !abierto);
+    }
+
     document.addEventListener('click', (e) => {
       const panel = document.getElementById('panel-tallas');
       const btn = document.getElementById('btn-talla-dropdown');
+      const icono = document.getElementById('icono-talla-dropdown');
       if (panel && !panel.classList.contains('hidden') && !panel.contains(e.target) && !btn.contains(e.target)) {
         panel.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        icono.classList.remove('fa-chevron-up');
+        icono.classList.add('fa-chevron-down');
       }
     });
 
