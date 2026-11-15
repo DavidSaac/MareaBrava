@@ -2281,14 +2281,14 @@
       document.getElementById('etiquetas-conteo-txt').innerText = `${lista.length} etiqueta(s) generada(s)`;
 
       cont.innerHTML = lista.map((p, idx) => `
-        <div class="bg-white p-3 rounded-xl border border-slate-300 shadow-sm text-center flex flex-col justify-between space-y-1">
+        <div class="bg-white p-3 rounded-xl border border-black shadow-sm text-center flex flex-col justify-between space-y-1">
           <div class="text-[9px] font-black tracking-widest text-brand-magenta">MAREA BRAVA</div>
-          <div class="text-xs font-bold text-slate-800 truncate">${p.nombre}</div>
-          <div class="text-[10px] text-slate-500 font-semibold">Talla: <strong>${tallasMap[p.talla] || 'M'}</strong> | ${p.color}</div>
+          <div class="text-xs font-bold text-black truncate">${p.nombre}</div>
+          <div class="text-[10px] text-black font-semibold">Talla: <strong>${tallasMap[p.talla] || 'M'}</strong> | ${p.color}</div>
           <div class="py-1 flex justify-center">
             <svg id="barcode-preview-${idx}" class="max-h-12 w-full"></svg>
           </div>
-          <div class="text-xs font-black text-slate-900 border-t pt-1">${formatoMXN(p.precioVenta)}</div>
+          <div class="text-xs font-black text-black border-t border-black pt-1">${formatoMXN(p.precioVenta)}</div>
         </div>
       `).join('');
 
